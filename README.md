@@ -2,8 +2,9 @@
 
 **A routing model that makes an AI say "I don't know" about your own body.**
 
-If you wear an Oura ring and train with a Garmin, you have two devices
-producing overlapping, disagreeing claims about the same physical events.
+If you wear more than one tracker — a ring and a watch, a band and a chest
+strap, a watch and a phone — you have devices producing overlapping,
+disagreeing claims about the same physical events.
 Wire both into an AI and ask "how am I doing?" and the naive answer is
 fluent, confident, and wrong — it double-counts one run as two workouts,
 averages two sensors into a number neither one measured, and reports a
@@ -12,6 +13,13 @@ sleep-stage breakdown as fact when the underlying validation says otherwise.
 MetricBraid is the correction layer: a set of routing rules, evidence
 dossiers, and analytical standards that tell the assistant **which source
 wins, under which conditions, and how much to trust the answer.**
+
+**It is not an Oura+Garmin tool.** The rules are written against capability
+classes; [`devices.yaml`](devices.yaml) binds those classes to whatever you
+actually own — Whoop, Apple Watch, Fitbit, Polar, Coros, a chest strap, an
+armband, or a single device on its own. The reference setup happens to be a
+ring plus a running watch because that is what the author wears; nothing in
+the rules depends on it.
 
 > This is a **template**, not a data repository. No health data is
 > published here.
@@ -26,14 +34,20 @@ Rule A.
 
 | Rule | Capability class | Source of truth | Status |
 |---|---|---|---|
-| **A** | `passive_247` — continuous physiological monitoring | The 24/7 passive sensor (here: Oura) | 🟡 [**Provisional**](evidence/rule-a-passive.md) |
+| **A** | `passive_247` — continuous physiological monitoring | Whichever device you declare as worn 24/7 | 🟡 [**Provisional**](evidence/rule-a-passive.md) |
 | **B** | `recorded_workout` — deliberately recorded sessions | The richer recorder for the event; the **best HR sensor class** for heart rate | 🟢 [**Verified**, one open gap](evidence/rule-b-recorded-workouts.md) |
 | **C** | `auto_detected` — incidental activity, no matching record | Whichever device detected it | 🟢 [**Verified** for attribution](evidence/rule-c-incidental.md) |
-| **D** | Self-reported nutrition | The user's own food log | ⚪ Outside the capability model |
+| **D** | Self-reported nutrition | Your own food log | ⚪ Outside the capability model |
 
 **[→ Read the evidence: every study, with methodology and what it doesn't
-prove](evidence/)** — six peer-reviewed validation papers against
-polysomnography and ECG, plus one deliberately not relied upon.
+prove](evidence/)** — ten peer-reviewed papers against polysomnography and
+ECG, plus one deliberately not relied upon.
+
+Evidence is split by **how far it generalizes**: `evidence/general/` is
+multi-brand or mechanism-based and applies to any wearable you own;
+`evidence/devices/` holds per-device numbers that transfer to nothing else.
+A device with no dossier still routes correctly — it just inherits the
+general baselines and no more.
 
 Rule A is marked provisional **and the assistant is required to say so out
 loud** whenever it leans on it — because the evidence does not close two
@@ -55,8 +69,11 @@ signals, and current-generation sleep-staging replication is thin.
   [`CHANGELOG.md`](evidence/CHANGELOG.md) logs every rule change *including
   reviews that conclude "no change"*, and [`watchlist.yaml`](evidence/watchlist.yaml)
   lists the monitored sources.
-- **[`SETUP.md`](SETUP.md)** — Garmin + Oura authentication, including the Oura OAuth2
-  migration.
+- **[`devices.yaml`](devices.yaml)** — your hardware and what each device
+  can do. **The only file most people need to edit.** Ships with commented
+  presets for common trackers.
+- **[`SETUP.md`](SETUP.md)** — Garmin + Oura authentication, including the
+  Oura OAuth2 migration.
 - **[`scripts/oura_auth.py`](scripts/oura_auth.py)** — dependency-free Oura OAuth2 helper.
 - **[`plugins/metricbraid/`](plugins/metricbraid/)** — the whole thing packaged as a Claude Code
   plugin.
@@ -115,13 +132,57 @@ worth stealing:
 7. **Name the weakest number.** Energy expenditure is the least accurate
    metric in the system, from any brand. Never build a conclusion on it.
 
-## Adapting it to other devices
+## Using it with your devices
 
-The rules are written around capability classes, not Oura and Garmin
-specifically. To swap in a Whoop, an Apple Watch, or a Fitbit: decide which
-capability classes the device declares, and the routing follows. What you
-*must* redo is [`evidence/`](evidence/) — the dossiers are device-specific, and an
-uncited rule is exactly the failure mode this repo exists to prevent.
+Edit [`devices.yaml`](devices.yaml). You should not need to touch the rules.
+
+```yaml
+devices:
+  - name: WHOOP
+    capabilities: [passive_247, auto_detected, recorded_workout]
+    hr_sensor: wrist_optical        # or optical_armband on the bicep
+external_hr_monitors:
+  owned:
+    - name: Polar Verity Sense
+      class: optical_armband
+```
+
+Declare which capability classes each device provides and where its HR
+sensor sits, and the routing follows. The file ships with commented presets
+for Whoop, Apple Watch, Fitbit, Polar, Coros, Suunto and Samsung.
+
+**What works immediately, with any hardware:**
+- All routing — capability classes are structural, not empirical
+- Deduplication, provenance, and the analytical standards
+- The device-agnostic evidence in [`evidence/general/`](evidence/general/):
+  the HR placement hierarchy, sleep-tracking limits, step and energy accuracy
+
+**What you'd need to add:** a dossier in
+[`evidence/devices/`](evidence/devices/) if you want device-*specific*
+accuracy claims — a particular device's HRV offset or staging bias. Start
+from [`TEMPLATE.md`](evidence/devices/TEMPLATE.md). Without one, the
+assistant is instructed to say so rather than borrow another device's
+numbers.
+
+**Edge cases the rules handle explicitly:** a single device (valid — but
+confidence goes *down*, since nothing cross-validates), two devices
+declaring the same class (`tiebreaks` in `devices.yaml`, and the assistant
+must say a tiebreak decided the answer), and three or more devices.
+
+### One honest limitation: data access
+
+The **rules** are device-agnostic. The **plumbing** is not. This repo bundles
+MCP servers for Oura and Garmin only, because those are what the author has
+wired up. For other hardware you supply the data yourself:
+
+| Your setup | What you get |
+|---|---|
+| Oura and/or Garmin | Works out of the box — see [SETUP.md](SETUP.md) |
+| Another device with a community MCP server | Add it to `.mcp.json` and declare it in `devices.yaml`; the rules don't care where records come from |
+| No MCP server available | Paste exports in, or drop a CSV in the repo. The routing, dedup and confidence rules all still apply — this is exactly how Rule D (nutrition) already works, since no food logger has an MCP server either |
+
+Rule D is the proof this degrades gracefully: it is the source of truth for
+intake and has *never* had a server behind it.
 
 ## License
 

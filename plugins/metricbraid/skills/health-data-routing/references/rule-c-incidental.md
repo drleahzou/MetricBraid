@@ -22,11 +22,14 @@ count / active minutes) that we attribute? That is what the citation bounds.
 
 ## Evidence
 
-Read against the primary source in-session on 2026-07-14.
+See **[`general/activity-and-energy.md`](general/activity-and-energy.md)** —
+Fuller et al. 2020, a systematic review of 158 publications and 5,934
+participants across Fitbit, Garmin, Apple, Samsung, Withings and Misfit.
+Device-agnostic by construction.
 
-| Date | Source | Methodology | Devices/generation | Confidence | Notes |
-|---|---|---|---|---|---|
-| 2026-07-14 | Fuller et al. 2020, *JMIR mHealth uHealth* — systematic review ([full text](https://mhealth.jmir.org/2020/9/e18694/), DOI [10.2196/18694](https://doi.org/10.2196/18694)) | Systematic review: 158 publications / 169 studies / 5,934 participants; steps vs direct/observed counts in lab and free-living. Independent; one author (JL) later employed by Garmin, disclosed, after paper completion. | Consumer wearables incl. Fitbit, **Garmin**, Apple, Samsung, Withings, Misfit | High (steps), as a bound | Step count is the **most-validated** consumer metric — far better than energy expenditure ("no brand accurate," <10% within limits). In controlled settings 45% of comparisons within ±3%; overall tendency to **underestimate** (mean ≈ −9%). Garmin performs "comparably to Fitbit." |
+Headline figures: steps are the most-validated consumer metric (≈ **−9%**
+mean underestimate, worse in free-living than in lab); **energy expenditure
+is accurate for no brand.**
 
 ## Scope and caveat
 

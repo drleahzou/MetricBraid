@@ -3,6 +3,67 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-08-30 — Generalized beyond the reference pairing
+
+Prompted by the observation that this is a public repo and the rules were
+still written for one person's hardware. **No verdict changed.** Two new
+device-agnostic dossiers were added and existing evidence was reorganized by
+how far it generalizes.
+
+**New evidence — device-agnostic sleep tracking (2 citations, both read
+against the primary source).**
+- Chinoy et al. 2021, *SLEEP* 44(5) ([10.1093/sleep/zsaa291](https://doi.org/10.1093/sleep/zsaa291)):
+  seven consumer devices vs PSG, n=34, 3 nights. Sleep sensitivity **≥0.93**;
+  wake specificity **0.18–0.54**; **30–50% misclassification** of deep and REM.
+- Lee YJ et al. 2025, *J Clin Sleep Med* ([10.5664/jcsm.11460](https://doi.org/10.5664/jcsm.11460)):
+  meta-analysis, **24 studies / 798 participants**, 12+ brands including
+  Whoop, Fitbit, Apple and Garmin. TST **−16.9 min**, sleep efficiency
+  −4.7%, WASO +13.3 min. Staging explicitly excluded as unestablished.
+
+**Why this matters more than the numbers:** the Oura-specific findings this
+repo already carried are **instances of a class-wide pattern**, not device
+quirks. High sleep sensitivity with poor wake specificity, and unreliable
+staging, recur across seven unrelated devices. So Rule A's practical
+obligations — trust duration, trend the stages, never state stages as fact —
+are now **device-agnostic and evidence-backed**, and survive a change of
+hardware. Previously a non-Oura user inherited nothing.
+
+**Evidence restructured into two tiers.**
+- `evidence/general/` — multi-brand or mechanism-based; inherited by every
+  setup regardless of hardware. Three dossiers: sleep tracking, HR sensor
+  placement (the hierarchy lifted out of Rule B, where it was buried), steps
+  and energy expenditure.
+- `evidence/devices/` — per-device numbers that transfer to nothing else
+  (Oura's RMSSD offset and staging bias; Garmin's model-specific
+  wrist-optical figures). Plus `TEMPLATE.md` for contributions.
+- Rule dossiers keep the reasoning and cite the tables rather than
+  duplicating them, so a fact has one home and cannot drift.
+
+**Rules de-hardcoded.** Rule A said "(in this pairing, Oura)"; the capability
+preamble named both devices. Capability-to-device binding now comes from a
+new **`devices.yaml`** registry — the only file most users need to edit.
+Ships with commented presets for Whoop, Apple Watch, Fitbit, Polar, Coros,
+Suunto and Samsung. Presets declare **capabilities only**; they carry no
+accuracy claims, since none has a dossier.
+
+**New cases handled explicitly:**
+- *Devices with no dossier* — route normally, inherit `general/` only, and
+  **never** borrow another device's numbers.
+- *Two devices, same class* — `tiebreaks` in `devices.yaml`; if unset, report
+  both with provenance rather than picking silently. A tiebreak is user
+  preference, not evidence, and must be declared as such. (There is no study
+  establishing that one 24/7 wearable beats another for passive signals —
+  this is the same gap that keeps Rule A provisional, now stated as applying
+  to *every* pairing rather than just the reference one.)
+- *Single-device setups* — valid, but confidence goes **down**: nothing
+  cross-validates, and dedup across sources becomes a no-op.
+
+**Limitation recorded, not hidden.** The rules are device-agnostic; the
+bundled MCP servers are not — only Oura and Garmin ship. Other hardware needs
+a community MCP server or manual export. The README states this plainly and
+notes Rule D (nutrition) has always worked this way, which is the proof it
+degrades gracefully.
+
 ## 2026-08-30 — Rule B split into event and HR channels
 
 Prompted by a user question about setups without a chest strap, third-party

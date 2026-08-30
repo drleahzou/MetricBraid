@@ -24,17 +24,17 @@ feature set.
 **Route by capability class, not by brand.** A rule never says "Oura wins
 sleep"; it says "the passively-worn continuous sensor wins passive signals,"
 and each device declares which capability classes it has. Oura declares
-`passive_247` + `auto_detected` + `recorded_workout` (since Live Activity
-Tracking, 2026-06-04); Garmin declares `recorded_workout` + `auto_detected`.
-The RECORD carries the class, not the device — so an Oura auto-detected walk
-routes through Rule C even though Oura also owns Rule A, and an Oura Live
-Activity routes through Rule B even though Garmin also owns Rule B.
+**which classes each device declares is read from `devices.yaml`, not
+hardcoded here.** The RECORD carries the class, not the device — so an
+auto-detected walk from a ring that also does passive monitoring still routes
+through Rule C, and a workout recorded by that same ring routes through Rule B
+even if a watch also declares Rule B.
 Never name a brand to pick a winner; name the capability that produced the
 record.
 
 - **Rule A — `passive_247`: passive/continuous physiological monitoring**
-  (worn 24/7, measured passively): **the continuously-worn passive sensor
-  is the source of truth** (in this pairing, Oura). This
+  (worn 24/7, measured passively): **the device declaring `passive_247` in
+  `devices.yaml` is the source of truth.** This
   covers sleep architecture, resting HR, HRV, temperature, readiness/recovery
   scores, stress, and any other passive biometric Oura measures now or adds
   in future. **Status: PROVISIONAL — say so when leaning on it** (see
@@ -90,6 +90,59 @@ record.
   user (see STAY CURRENT below), ask which rule it should follow, then
   propose adding it to this file.
 
+## YOUR SETUP (read `devices.yaml` first)
+
+**This repo is not an Oura+Garmin tool.** The rules are written against
+capability classes; `devices.yaml` binds those classes to actual hardware.
+**Read `devices.yaml` at the start of any analysis session** and route from
+what it declares — never from what you assume the user owns.
+
+- If `devices.yaml` is missing or a device isn't listed, **say so and ask**
+  rather than inferring hardware from which MCP servers happen to respond.
+- A device's presence in `devices.yaml` declares **capabilities only**. It
+  confers no accuracy claim. Accuracy comes from a dossier in `evidence/`.
+
+### Devices with no dossier
+
+Most devices will not have one. That is expected and is not a blocker — it
+changes what you may say, not whether you may route.
+
+- Routing still works: capability classes are structural, not empirical.
+- For accuracy, the device inherits **only** the device-agnostic baselines in
+  `evidence/general/` — sleep tracking, HR sensor placement, steps and energy
+  expenditure. These are multi-brand or mechanism-based and apply to any
+  consumer wearable.
+- **Do not transfer a device-specific number to a device it wasn't measured
+  on.** One device's RMSSD offset or deep-sleep bias is not another's. When a
+  user asks about a device with no dossier, say what the general evidence
+  supports and name the absence.
+
+### MULTIPLE DEVICES, SAME CLASS
+
+Two devices can declare the same capability class (two rings, a watch and a
+band, a strap and a watch both recording).
+
+1. **`recorded_workout` on both** → not a conflict; it is one event. Merge by
+   channel per Rule B and the DEDUPLICATION rules below.
+2. **`passive_247` on both** (e.g. a ring and a 24/7 watch) → use
+   `tiebreaks.passive_247` in `devices.yaml`. If it is unset, **say the
+   conflict is unresolved and report both**, with provenance. Do not pick
+   silently, and never average.
+3. **`auto_detected` on both** → whichever detected the bout owns it (Rule C).
+   If both detected the same bout, deduplicate; do not sum.
+
+Tiebreaks are user preference, not evidence — there is no study establishing
+that one 24/7 wearable beats another for passive signals. **Say so when a
+tiebreak decided an answer.**
+
+### SINGLE-DEVICE SETUPS
+
+One device is a valid configuration. Rules A/B/C still apply — they just all
+resolve to the same device, and the deduplication step is a no-op *across*
+sources (still run the within-source duplicate check). Nothing is
+cross-validated, so **confidence is lower, not higher**: there is no second
+record to catch an anomaly. Say that when it matters.
+
 ## HEART-RATE SOURCE (Rule B, HR channel)
 
 In-workout HR is the one channel where the recording device does **not**
@@ -135,36 +188,22 @@ during rapid HR transitions (intervals, sprint starts), and they are
 placement-sensitive — a loose or mis-sited band degrades badly. For interval
 work specifically, a chest strap remains preferable.
 
-### External HR monitor declaration (EDIT THIS — it is user-specific)
+### Where monitor use is declared
 
-The APIs do **not** expose which HR sensor fed a session. Garmin's
-`device_manufacturer` names the *recorder*, not the sensor. Running dynamics
-are **not** a proxy either — a Forerunner 955 produces them from the wrist.
-So monitor use must be declared here:
+**No API reports which HR sensor fed a session.** A recorder field like
+Garmin's `device_manufacturer` names the *recorder*, not the sensor. Running
+dynamics are not a proxy either — some watches generate them at the wrist.
 
-```yaml
-# Registered hardware: Garmin Forerunner 955 (watch), Garmin HRM 200 (chest strap)
-external_hr_monitor:
-  default_for_recorded_workouts: ecg_chest_strap   # "I usually wear the strap"
-  none:
-    - swimming        # BLE/ANT+ does not transmit through water, and the
-                      # HRM 200 has no store-and-forward, so pool HR is
-                      # wrist-optical regardless of what was worn.
-                      # (An armband with onboard recording, e.g. Verity Sense
-                      # on a goggle strap, would be an exception — declare it.)
-  unknown:            # ← confirm and move these into a list above
-    - yoga
-    - stretching
-    - strengthTraining
-    - indoor_cardio
-```
+So it is declared in **`devices.yaml`**, under `external_hr_monitors`
+(`owned` and `worn_for`). Read it, don't guess.
 
-**Treat `unknown` as no-monitor for confidence purposes** — flag the HR as
-low-confidence rather than silently assuming one was worn. When an activity
-type in `unknown` matters to a conclusion, ask rather than guess.
-
-If the declaration is missing or the activity type isn't listed, say the
-monitor status is undeclared instead of inferring it.
+- Activity types under `worn_for.unknown`, or not listed at all, are
+  **treated as unmonitored for confidence purposes** — flag the HR as
+  low-confidence rather than silently assuming a monitor was worn.
+- When an unlisted activity type actually matters to a conclusion, **ask**
+  instead of inferring.
+- If `devices.yaml` has no `external_hr_monitors` block, say monitor status
+  is undeclared and apply the no-monitor branch above.
 
 ## NUTRITION DATA INTAKE (Rule D mechanics)
 
@@ -201,8 +240,17 @@ It cannot be queried. This changes the failure mode, so handle it explicitly:
 
 Verdicts decay — firmware ships, generations change, a 2019 study describes a
 device nobody wears now. The rules above are only trustworthy if their
-evidence is kept honest. Dossiers live in `evidence/`
-(citations verified against primary sources 2026-07-14).
+evidence is kept honest. Dossiers live in `evidence/`, in two tiers:
+
+- **`evidence/general/`** — device-agnostic, multi-brand or mechanism-based.
+  Every setup inherits these regardless of hardware: consumer sleep tracking,
+  HR sensor placement, steps and energy expenditure.
+- **`evidence/devices/`** — per-device specifics. These do **not** transfer
+  between devices. A number measured on one device says nothing about another.
+
+Where a device dossier and a general dossier disagree, the device dossier is
+more specific and wins **for that device only**. A device with no dossier
+inherits `general/` and nothing more.
 
 - **Rule A is PROVISIONAL and that must be VISIBLE, not smoothed over.** Two
   gaps the evidence does not close: (1) there is **no independent

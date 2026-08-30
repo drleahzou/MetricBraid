@@ -13,15 +13,14 @@ wins over any other device's estimate of the same event, always.
 
 ## Evidence
 
-Both entries read against the primary source in-session on 2026-07-14. Both are
-independent (Cleveland Clinic), no manufacturer funding.
+The HR trust hierarchy and all four supporting studies now live in
+**[`general/hr-sensor-placement.md`](general/hr-sensor-placement.md)** —
+Etiwy 2019, Pasadyn 2019, Hettiarachchi 2019 and Schweizer &
+Gilgen-Ammann 2025. It is device-agnostic: sensing method and anatomical
+placement determine accuracy, not brand.
 
-| Date | Source | Methodology | Devices/generation | Confidence | Notes |
-|---|---|---|---|---|---|
-| 2026-07-14 | Etiwy et al. 2019, *Cardiovasc Diagn Ther* ([article](https://cdt.amegroups.org/article/view/25572/24196), DOI [10.21037/cdt.2019.04.08](https://doi.org/10.21037/cdt.2019.04.08)) | Concordance vs **ECG** (Mason-Likar), n=80 cardiac-rehab patients, rest + exercise. Independent (Cleveland Clinic; Holdsworth Fund), no COI. | Polar H7 chest strap; Apple Watch; Fitbit Blaze; **Garmin Forerunner 235**; TomTom Spark | High | Chest strap **rc=0.99** vs ECG. Wrist optical far lower during exercise: Apple 0.80, Fitbit 0.78, TomTom 0.76, **Garmin Forerunner 235 rc=0.52**. Direct evidence that a chest-strap recording beats wrist optical — and that Garmin's own wrist optical degrades badly under exercise. |
-| 2026-07-14 | Pasadyn/Gillinov et al. 2019, *Cardiovasc Diagn Ther* ([PMC6732081](https://pmc.ncbi.nlm.nih.gov/articles/PMC6732081/), DOI [10.21037/cdt.2019.06.05](https://doi.org/10.21037/cdt.2019.06.05)) | Concordance vs 3-lead **ECG**, n=50 healthy athletes, rest → treadmill intensity ramp. Independent (Cleveland Clinic), no COI. | Polar H7 chest strap; Apple Watch III; Fitbit Ionic; **Garmin Vivosmart HR**; TomTom Spark 3 | High | Chest strap **rc=0.98**. All devices accurate at rest; wrist optical accuracy *falls as treadmill intensity rises*. Confirms the mechanism (motion artifact on PPG) that makes the recording device — with the option of a chest strap and direct GPS/pace/power — authoritative for the session. |
-| 2026-08-30 | Hettiarachchi et al. 2019, *PLOS One* ([article](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0217288), DOI [10.1371/journal.pone.0217288](https://doi.org/10.1371/journal.pone.0217288)) | vs 64-channel **ECG** (g.Nautilus), n=24 (12M/12F, 21–38y), treadmill walking flat + 6.1° incline, spin bike 60/80 rpm. Independent (Deakin University IISRI); authors declare no competing interests. | **Polar OH1 optical armband** at forearm, upper arm, temple | High | **ICC 0.99** at all three sites; mean bias **0.27–0.33 bpm**; 95% LoA ≈ ±5 bpm. Establishes that optical PPG *at the arm* is a fundamentally different accuracy regime from optical at the wrist. |
-| 2026-08-30 | Schweizer & Gilgen-Ammann 2025, *JMIR Cardio* ([PMC11951816](https://pmc.ncbi.nlm.nih.gov/articles/PMC11951816/), DOI [10.2196/67110](https://doi.org/10.2196/67110)) | Head-to-head vs **Polar H10 ECG chest strap** criterion, n=16, nine activities from lying down to HIIT/parkour, protocol repeated twice. Independent (Swiss Federal Institute of Sport Magglingen); no COI declared. | **Polar Verity Sense** (upper arm, forearm) vs **Polar Vantage V2** (both wrists) | High | Upper arm: bias **−0.05 bpm**, MAE **1.43 bpm**, MAPE **1.35%**, CCC **1.00**. Non-dominant wrist: bias 2.56 bpm, MAE **6.41 bpm**, MAPE 6.82%, CCC 0.92. Same protocol, same criterion — **arm beats wrist by ~4.5× on MAE.** Note the criterion here is itself a chest strap, which is why the strap sits at the top of the hierarchy. |
+Device-specific figures (e.g. which Garmin model measured rc=0.52) are in
+[`devices/garmin.md`](devices/garmin.md).
 
 ## Why this is generation-robust
 
@@ -44,23 +43,16 @@ with different sensors behind them.
   recorded the session.** The strap is the sensor; the watch or phone is only
   the recorder.
 
-| Sensor class | Evidence | Trust |
-|---|---|---|
-| `ecg_chest_strap` — any BLE/ANT+ chest strap, any brand | rc=0.99 (Etiwy) / rc=0.98 (Pasadyn) vs ECG; used as the *criterion device* by Schweizer & Gilgen-Ammann | **Highest** |
-| `optical_armband` — optical PPG at upper arm or forearm | ICC 0.99, bias 0.27–0.33 bpm (Hettiarachchi); MAE 1.43 bpm, CCC 1.00 (Schweizer, upper arm) | **High** |
-| `wrist_optical` — watch PPG at the wrist | rc=0.52 Garmin FR235 (Etiwy); degrades as intensity rises (Pasadyn); MAE 6.41 bpm, CCC 0.92 (Schweizer) | **Low during exercise** |
-| `ring_ppg` — ring PPG | **No validation during exercise exists.** [Rule A's](rule-a-passive.md) citations are nocturnal/at-rest only | **Unknown — see gap below** |
-| `other_ble` — earbuds, gym equipment | No citation | **Unknown — treat as undeclared** |
+See **[`general/hr-sensor-placement.md`](general/hr-sensor-placement.md)**
+for the full five-class hierarchy with its citations. In short:
+`ecg_chest_strap` (highest) and `optical_armband` (high) together form the
+routing class **`external_hr_monitor`**, which beats `wrist_optical` (low
+during exercise) and `ring_ppg` (unvalidated during exercise).
 
 **Placement is the variable, not brand.** Every reference-grade measurement
-above came from a **Polar** device paired into non-Polar setups, and the
-armband/wrist split in Schweizer & Gilgen-Ammann is *within a single brand* —
-Verity Sense vs Vantage V2, same protocol, same criterion. Optical at the arm
-and optical at the wrist are different accuracy regimes (less motion artifact,
-better optical coupling), not different price points. So a third-party strap
-or armband synced to a Garmin watch, or paired to the Oura app via
-[Live Activity Tracking](https://support.ouraring.com/hc/en-us/articles/50433376859283-Live-Activity-Tracking)
-(shipped 2026-06-04), carries that same authority.
+came from a Polar device paired into non-Polar setups, and the armband/wrist
+split in Schweizer & Gilgen-Ammann is *within a single brand* — same protocol,
+same criterion, arm beat wrist ~4.5× on MAE.
 
 **Two caveats that survive the good armband numbers:** optical armbands lag
 during rapid HR transitions (intervals, sprint starts), and they are

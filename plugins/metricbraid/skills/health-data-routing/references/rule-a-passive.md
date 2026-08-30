@@ -12,15 +12,25 @@ is the source of truth over a training watch.
 
 ## Evidence
 
-All entries below were read against the primary source in-session on the date
-shown. Sources are independent of the manufacturer unless noted; where the
-manufacturer supplied data or hardware, the arrangement is stated.
+This rule's evidence now lives in two places, so that what generalizes is not
+confused with what does not:
 
-| Date | Source | Methodology | Devices/generation | Confidence | Notes |
-|---|---|---|---|---|---|
-| 2026-07-14 | de Zambotti et al. 2019, *Behavioral Sleep Medicine* — "The Sleep of the Ring" ([PMC6095823](https://pmc.ncbi.nlm.nih.gov/articles/PMC6095823/), DOI [10.1080/15402002.2017.1300587](https://doi.org/10.1080/15402002.2017.1300587)) | Epoch-by-epoch vs in-lab PSG (6-lead EEG, AASM scoring), 1 night, n=41 healthy adolescents/young adults. Independent (SRI International); Oura supplied epoch data but had no access to PSG staging or participant data. | Oura **Gen1** | Medium (old generation) | Sleep-detection sensitivity **95.5%**, but wake specificity only **48.1%** (poor at catching wake). Underestimated deep sleep ≈20 min, overestimated REM ≈17 min. TST/WASO unbiased. Establishes Oura as a valid *sleep/wake* passive monitor; **sleep staging is only moderate.** |
-| 2026-07-14 | Chee/Ghorbani et al. 2021, *Nature and Science of Sleep* ([PMC7894804](https://pmc.ncbi.nlm.nih.gov/articles/PMC7894804/), DOI [10.2147/NSS.S286070](https://doi.org/10.2147/NSS.S286070)) | Multi-night (8 nights/participant, 3 time-in-bed conditions) vs PSG, n=53 healthy adolescents. Independent (Singapore NMRC-funded); Oura supplied rings only, "contents independently generated." | Oura **Gen2**, fw 1.36.3 | Medium-high (multi-night, but Gen2) | Sleep-wake accuracy/sensitivity/specificity **0.88–0.89**. Systematic staging bias persists: deep sleep overestimated 32–47 min, light and REM underestimated. Confirms good sleep/wake detection, imperfect staging, on a newer generation than Gen1. |
-| 2026-07-14 | Cao et al. 2022, *J Med Internet Res* ([PMC8808342](https://pmc.ncbi.nlm.nih.gov/articles/PMC8808342/), DOI [10.2196/27487](https://doi.org/10.2196/27487)) | Overnight nocturnal HR and time/frequency-domain HRV vs Shimmer3 **ECG**, n=35 healthy adults. Independent (UC Irvine / U. Turku); Oura provided data access, no other conflict declared. | Oura ring (generation not stated in paper) | High for HR, Medium for HRV | HR mean bias **−0.44 bpm** (r=0.999) — excellent. RMSSD (nightly HRV) mean bias **−15 to −16 ms** (r=0.92–0.96) — good correlation but a real underestimate, so absolute HRV should be read as trend-vs-baseline, not an exact value. |
+- **[`general/sleep-tracking.md`](general/sleep-tracking.md)** — the
+  device-agnostic baseline. Chinoy et al. 2021 (7 devices vs PSG) and Lee et
+  al. 2025 (meta-analysis, 24 studies / 798 participants / 12+ brands).
+  **Applies to any consumer wearable**, and is what a setup with no device
+  dossier inherits.
+- **[`devices/oura.md`](devices/oura.md)** — the Oura-specific numbers
+  (de Zambotti 2019, Ghorbani/Chee 2021, Cao 2022), including the ~15 ms
+  RMSSD underestimate and the generation-dependent staging bias. **These do
+  not transfer to other devices.**
+
+The key point for anyone adapting this repo: the Oura-specific findings are
+**instances of the class-wide pattern**, not quirks. High sleep sensitivity
+with poor wake specificity, and unreliable staging, show up across seven
+unrelated devices in Chinoy. So Rule A's practical obligations — trust
+duration, trend the stages, never state stages as fact — are device-agnostic
+and survive a change of hardware.
 
 ## Why still provisional
 

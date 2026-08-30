@@ -14,13 +14,25 @@ Set up MetricBraid in the current project directory.
      template to `CLAUDE.metricbraid.md` for them to merge by hand. Ask
      which they want before writing.
 
-2. **Install the nutrition template.** Copy
+2. **Install the device registry.** Copy
+   `${CLAUDE_PLUGIN_ROOT}/templates/devices.yaml` into the project root if it
+   isn't already there, then **ask the user what they actually wear** and fill
+   it in — devices, capability classes, HR sensor placement, and any external
+   HR monitor. The shipped file is the author's setup (a ring plus a running
+   watch) used as a worked example; it ships with commented presets for Whoop,
+   Apple Watch, Fitbit, Polar, Coros, Suunto and Samsung.
+
+   Be explicit with the user that declaring a device grants **capabilities,
+   not accuracy** — a device with no dossier in `evidence/devices/` still
+   routes correctly but inherits only the device-agnostic baselines.
+
+3. **Install the nutrition template.** Copy
    `${CLAUDE_PLUGIN_ROOT}/templates/food-log.example.csv` into the project
    root if it isn't already there. Tell the user to `cp` it to
    `food-log.csv` and add that filename to their `.gitignore` — it will
    contain personal data.
 
-3. **Verify the MCP servers.** Check whether the `garmin` and `oura` MCP
+4. **Verify the MCP servers.** Check whether the `garmin` and `oura` MCP
    servers are connected in this session.
    - Report the status of each plainly. Do not assume they work.
    - If **Oura** is failing with a 401: the most likely cause is a Personal
@@ -35,7 +47,7 @@ Set up MetricBraid in the current project directory.
    - Remember MCP servers capture their environment at session start, so a
      session restart is required after any env change.
 
-4. **Confirm what was installed** and note that Rule A (passive signals) is
+5. **Confirm what was installed** and note that Rule A (passive signals) is
    marked PROVISIONAL by design — the assistant is required to say so
    whenever an answer leans on it.
 

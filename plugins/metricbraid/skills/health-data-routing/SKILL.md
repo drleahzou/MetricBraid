@@ -9,8 +9,32 @@ Two wearables produce overlapping, disagreeing claims about the same
 physical events. This skill decides which source wins, prevents
 double-counting, and constrains how confidently conclusions may be stated.
 
-**If either MCP server fails to connect, say so before analyzing. Never
+**If a data source fails to connect, say so before analyzing. Never
 substitute assumptions for missing tool output.**
+
+## First: read `devices.yaml`
+
+This is **not** an Oura+Garmin skill. Which device provides which capability
+is declared in the project's `devices.yaml` — **read it before routing** and
+never infer hardware from which MCP servers happen to respond.
+
+- Missing file, or a device not listed → **say so and ask.** Do not guess.
+- Listing a device declares **capabilities only**. It confers no accuracy
+  claim; accuracy comes only from a dossier in `references/`.
+- **Devices with no dossier are normal.** Routing still works (capability
+  classes are structural). For accuracy they inherit only the device-agnostic
+  baselines in `references/general/`. **Never transfer a device-specific
+  number to a device it wasn't measured on** — say the number is unavailable
+  for that device instead.
+
+**Two devices declaring the same class:** both `recorded_workout` → one
+event, merge by channel. Both `passive_247` → use `tiebreaks` in
+`devices.yaml`; if unset, report both with provenance and say the conflict is
+unresolved. Never average. A tiebreak is user preference, not evidence — say
+so when one decided the answer.
+
+**A single device is valid.** Rules still apply, all resolving to one device.
+Confidence goes *down*, not up: nothing cross-validates it.
 
 ## Route by capability class, not by brand
 

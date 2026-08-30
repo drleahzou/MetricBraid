@@ -1,0 +1,109 @@
+# MetricBraid device registry
+# ---------------------------------------------------------------------------
+# The routing rules in CLAUDE.md are written against CAPABILITY CLASSES, not
+# brands. This file is where you declare which devices you own and which
+# classes each one provides. Edit it and the rules follow your setup — you
+# should not need to edit CLAUDE.md itself.
+#
+# CAPABILITY CLASSES
+#   passive_247      Worn continuously, measures passively (sleep, resting HR,
+#                    HRV, temperature, recovery scores).            -> Rule A
+#   recorded_workout Sessions you deliberately start recording.     -> Rule B
+#   auto_detected    Activity the device notices on its own.        -> Rule C
+#
+# A device may declare several. The RECORD carries the class, not the device:
+# an auto-detected walk from a device that also does passive_247 still routes
+# through Rule C.
+#
+# HR SENSOR CLASSES (see evidence/general/hr-sensor-placement.md)
+#   ecg_chest_strap  Electrical, chest.        Highest trust.
+#   optical_armband  Optical, upper arm/forearm. High trust.
+#   wrist_optical    Optical, wrist.          Low trust during exercise.
+#   ring_ppg         Optical, finger.         Unknown during exercise.
+#   other_ble        Earbuds, gym equipment.  Unknown — treated as undeclared.
+#
+# IMPORTANT: entries below declare CAPABILITIES (how a device is worn, what it
+# records) — these are checkable facts. They do NOT confer accuracy claims.
+# Accuracy comes only from a dossier in evidence/. A device with no dossier
+# inherits the device-agnostic baselines in evidence/general/ and nothing more.
+# ---------------------------------------------------------------------------
+
+devices:
+  - name: Oura Ring
+    id: oura
+    mcp_server: oura
+    capabilities: [passive_247, auto_detected, recorded_workout]
+    hr_sensor: ring_ppg
+    notes: >-
+      recorded_workout since Live Activity Tracking (2026-06-04, Gen3+), which
+      records sessions and pairs external BLE HR monitors. The ring does not
+      stream live HR without an external monitor paired.
+    evidence: evidence/devices/oura.md
+
+  - name: Garmin Forerunner 955
+    id: garmin
+    mcp_server: garmin
+    capabilities: [recorded_workout, auto_detected, passive_247]
+    hr_sensor: wrist_optical
+    notes: >-
+      Generates running dynamics from the wrist, so the presence of ground
+      contact time or vertical oscillation is NOT evidence a strap was worn.
+    evidence: evidence/devices/garmin.md
+
+# ---------------------------------------------------------------------------
+# EXTERNAL HR MONITORS
+# No API reports which sensor fed a session, so this must be declared.
+# Undeclared activity types are treated as UNMONITORED for confidence purposes
+# — the rules will flag the HR as low-confidence rather than assume.
+# ---------------------------------------------------------------------------
+external_hr_monitors:
+  owned:
+    - name: Garmin HRM 200
+      class: ecg_chest_strap
+      pairs_with: [garmin, oura]   # any BLE HR Service device pairs with both
+
+  worn_for:
+    default_for_recorded_workouts: ecg_chest_strap
+    none:
+      - swimming        # BLE/ANT+ does not transmit through water. Live HR
+                        # needs onboard store-and-forward ON THE MONITOR —
+                        # verify for your specific model, do not assume.
+    unknown:            # <- move these into a list above once confirmed
+      - yoga
+      - stretching
+      - strengthTraining
+      - indoor_cardio
+
+# ---------------------------------------------------------------------------
+# TIEBREAKS — used when two devices declare the same capability class.
+# See CLAUDE.md "MULTIPLE DEVICES, SAME CLASS".
+# ---------------------------------------------------------------------------
+tiebreaks:
+  passive_247: oura       # which device wins sleep / HRV / resting HR
+  recorded_workout: garmin # which wins the EVENT channel (not HR — see Rule B)
+  auto_detected: null      # null = whichever device detected it (Rule C)
+
+# ---------------------------------------------------------------------------
+# PRESETS — uncomment and adapt. Capability declarations only; none of these
+# carry accuracy claims, and none has a dossier in evidence/devices/ yet.
+# Contributions welcome: see evidence/devices/TEMPLATE.md.
+# ---------------------------------------------------------------------------
+# - name: WHOOP
+#   capabilities: [passive_247, auto_detected, recorded_workout]
+#   hr_sensor: wrist_optical      # or optical_armband when worn on the bicep
+#
+# - name: Apple Watch
+#   capabilities: [recorded_workout, auto_detected, passive_247]
+#   hr_sensor: wrist_optical
+#
+# - name: Fitbit
+#   capabilities: [passive_247, auto_detected, recorded_workout]
+#   hr_sensor: wrist_optical
+#
+# - name: Polar Verity Sense
+#   capabilities: []              # a sensor, not a tracker — declare it under
+#   hr_sensor: optical_armband    # external_hr_monitors.owned instead
+#
+# - name: Coros / Suunto / Samsung / Withings
+#   capabilities: [recorded_workout, auto_detected, passive_247]
+#   hr_sensor: wrist_optical
