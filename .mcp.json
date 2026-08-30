@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "garmin": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12",
+        "--with",
+        "mcp<2",
+        "--from",
+        "git+https://github.com/Taxuspt/garmin_mcp",
+        "garmin-mcp"
+      ]
+    },
+    "oura": {
+      "command": "npx",
+      "args": ["-y", "oura-ring-mcp"],
+      "env": {
+        "OURA_ACCESS_TOKEN": "${OURA_ACCESS_TOKEN}"
+      }
+    }
+  }
+}

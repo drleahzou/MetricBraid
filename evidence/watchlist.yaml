@@ -1,0 +1,26 @@
+# Monitored sources for the research watch (weekly job → `evidence-review` issues).
+# A flag is never an automatic rule change.
+sources:
+  - name: The Quantified Scientist (Rob ter Horst)
+    type: youtube_channel
+    url: https://www.youtube.com/@TheQuantifiedScientist
+    why: EEG/ECG-referenced consumer wearable testing; original basis of rules A/B/C
+    match: [oura, garmin, sleep, HRV, heart rate, accuracy]
+  - name: DC Rainmaker
+    type: blog
+    url: https://www.dcrainmaker.com/
+    why: sport-sensor and device accuracy testing
+    match: [garmin, heart rate, accuracy, optical]
+  - name: Marco Altini
+    type: blog
+    url: https://marcoaltini.substack.com/
+    why: HRV measurement methodology
+    match: [HRV, baseline, measurement]
+  - name: PubMed — wearable validation
+    type: pubmed_query
+    query: '(Oura OR Garmin) AND (validation OR polysomnography OR accuracy) AND (sleep OR "heart rate variability")'
+    why: peer-reviewed validation literature
+
+review:
+  automated: weekly
+  manual_full_review: quarterly

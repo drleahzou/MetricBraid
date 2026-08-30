@@ -1,0 +1,32 @@
+# ---- Credentials & tokens — never commit ----
+.env
+.env.*
+*.env
+.garminconnect/
+.oura-mcp/
+*token*
+*credentials*
+
+# Claude Code local settings — may contain OURA_ACCESS_TOKEN in its env block.
+# NOTE: do not rely on a global ~/.config/git/ignore for this; it must be
+# ignored by the repo itself so clones and other machines are protected too.
+.claude/settings.local.json
+.claude/settings.local.json.*
+
+# ---- Personal health data — this is a template repo, not a data repo ----
+# Your own exports stay local. Only *.example.csv templates are tracked.
+food-log.csv
+InBody-*.csv
+inbody-*.csv
+*-export.csv
+data/
+exports/
+
+# Personal drafts / notes
+writing/
+
+# ---- Build & scratch ----
+node_modules/
+__pycache__/
+.venv/
+.DS_Store

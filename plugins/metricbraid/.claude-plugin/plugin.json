@@ -1,0 +1,13 @@
+{
+  "name": "metricbraid",
+  "description": "Reconcile overlapping health data from an Oura ring and a Garmin watch. Bundles both MCP servers plus a capability-based routing model (which device is the source of truth for which metric), ±12-minute event deduplication, evidence dossiers with verified citations, and analytical standards that require provenance on every number and force provisional verdicts to be stated out loud.",
+  "version": "0.1.0",
+  "author": {
+    "name": "drleahzou",
+    "url": "https://github.com/drleahzou"
+  },
+  "homepage": "https://github.com/drleahzou/MetricBraid",
+  "repository": "https://github.com/drleahzou/MetricBraid",
+  "license": "MIT",
+  "keywords": ["health", "oura", "garmin", "wearables", "quantified-self"]
+}

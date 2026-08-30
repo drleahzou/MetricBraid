@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "metricbraid",
+  "description": "Multi-device health data routing for Claude Code — reconcile Oura and Garmin without double-counting, averaging, or overclaiming.",
+  "owner": {
+    "name": "drleahzou",
+    "url": "https://github.com/drleahzou"
+  },
+  "plugins": [
+    {
+      "name": "metricbraid",
+      "description": "Wires up Garmin + Oura MCP servers and installs a capability-based routing model that decides which device wins for which metric, deduplicates overlapping events, and forces the assistant to carry provenance and flag provisional evidence.",
+      "source": "./plugins/metricbraid",
+      "category": "productivity",
+      "tags": ["health", "oura", "garmin", "wearables", "quantified-self", "mcp", "data-quality"]
+    }
+  ]
+}
