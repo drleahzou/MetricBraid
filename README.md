@@ -26,30 +26,39 @@ Rule A.
 
 | Rule | Capability class | Source of truth | Status |
 |---|---|---|---|
-| **A** | `passive_247` — continuous physiological monitoring | The 24/7 passive sensor (here: Oura) | **Provisional** |
-| **B** | `recorded_workout` — deliberately recorded sessions | The recording device (here: Garmin) | **Verified**, one caveat |
-| **C** | `auto_detected` — incidental activity, no matching record | Whichever device detected it | **Verified** for attribution |
-| **D** | Self-reported nutrition | The user's own food log | Outside the capability model |
+| **A** | `passive_247` — continuous physiological monitoring | The 24/7 passive sensor (here: Oura) | 🟡 [**Provisional**](evidence/rule-a-passive.md) |
+| **B** | `recorded_workout` — deliberately recorded sessions | The recording device (here: Garmin) | 🟢 [**Verified**, one caveat](evidence/rule-b-recorded-workouts.md) |
+| **C** | `auto_detected` — incidental activity, no matching record | Whichever device detected it | 🟢 [**Verified** for attribution](evidence/rule-c-incidental.md) |
+| **D** | Self-reported nutrition | The user's own food log | ⚪ Outside the capability model |
+
+**[→ Read the evidence: every study, with methodology and what it doesn't
+prove](evidence/)** — six peer-reviewed validation papers against
+polysomnography and ECG, plus one deliberately not relied upon.
 
 Rule A is marked provisional **and the assistant is required to say so out
 loud** whenever it leans on it — because the evidence does not close two
 gaps: there is no independent Oura-vs-Garmin head-to-head for passive
 signals, and current-generation sleep-staging replication is thin.
+[The full reasoning is in the Rule A dossier.](evidence/rule-a-passive.md)
 
 ## What's actually in here
 
-- **`CLAUDE.md`** — the operating rules. Source-of-truth routing,
+- **[`CLAUDE.md`](CLAUDE.md)** — the operating rules. Source-of-truth routing,
   deduplication (±12 min overlap buffer), evidence discipline, analytical
   standards (personal baseline over population norms, confounders, lag
   windows, sample-size honesty).
-- **`evidence/`** — dossiers backing each rule, with citations verified
-  against primary sources, plus a `CHANGELOG.md` that logs every rule change
-  *including reviews that conclude "no change"*, and a `watchlist.yaml` of
-  monitored sources.
-- **`SETUP.md`** — Garmin + Oura authentication, including the Oura OAuth2
+- **[`evidence/`](evidence/)** — [an index of every paper cited](evidence/README.md),
+  plus a dossier per rule ([A](evidence/rule-a-passive.md) ·
+  [B](evidence/rule-b-recorded-workouts.md) ·
+  [C](evidence/rule-c-incidental.md)) recording methodology, sample size,
+  device generation, confidence, and the gaps the evidence leaves open. A
+  [`CHANGELOG.md`](evidence/CHANGELOG.md) logs every rule change *including
+  reviews that conclude "no change"*, and [`watchlist.yaml`](evidence/watchlist.yaml)
+  lists the monitored sources.
+- **[`SETUP.md`](SETUP.md)** — Garmin + Oura authentication, including the Oura OAuth2
   migration.
-- **`scripts/oura_auth.py`** — dependency-free Oura OAuth2 helper.
-- **`plugins/metricbraid/`** — the whole thing packaged as a Claude Code
+- **[`scripts/oura_auth.py`](scripts/oura_auth.py)** — dependency-free Oura OAuth2 helper.
+- **[`plugins/metricbraid/`](plugins/metricbraid/)** — the whole thing packaged as a Claude Code
   plugin.
 
 ## Install
@@ -88,8 +97,9 @@ worth stealing:
 2. **Carry provenance on every number.** Which source produced it, which
    rule selected it, what was merged into it, whether the governing rule is
    provisional. If you can't answer that, you can't defend the number.
-3. **Never cite a study from memory.** Accuracy claims come from a dossier
-   in `evidence/` or they get read against the primary source first.
+3. **Never cite a study from memory.** Accuracy claims come from [a dossier
+   in `evidence/`](evidence/) or they get read against the primary source
+   first.
 4. **A new finding is never an automatic rule change.** Raise it, record
    it, then propose the edit — and log it, even when the conclusion is
    "no change."
@@ -105,7 +115,7 @@ worth stealing:
 The rules are written around capability classes, not Oura and Garmin
 specifically. To swap in a Whoop, an Apple Watch, or a Fitbit: decide which
 capability classes the device declares, and the routing follows. What you
-*must* redo is `evidence/` — the dossiers are device-specific, and an
+*must* redo is [`evidence/`](evidence/) — the dossiers are device-specific, and an
 uncited rule is exactly the failure mode this repo exists to prevent.
 
 ## License

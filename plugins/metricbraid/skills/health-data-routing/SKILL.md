@@ -146,7 +146,10 @@ which portion, so the math can be sanity-checked.
   then propose the edit — and log it, including reviews concluding "no
   change."
 
-See `references/` for the dossiers backing each rule.
+See `references/README.md` for an index of every paper cited, and
+`references/rule-{a,b,c}-*.md` for the dossier behind each rule —
+methodology, sample size, device generation, confidence grade, and the
+gaps the evidence leaves open. Cite from these, never from memory.
 
 ## Analytical standards
 
