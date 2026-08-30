@@ -49,6 +49,28 @@ a per-device dossier:
    relocate the radial artery. This is why the hierarchy is expected to be
    generation-robust in a way that, say, a sleep-staging algorithm is not.
 
+## The wrist-optical penalty is intensity-dependent, not constant
+
+This is easy to miss and changes what you may say about a low-intensity
+session. Both Cleveland Clinic studies report the *same* structure:
+
+- **At rest, all devices were accurate** — including wrist optical.
+- Accuracy **falls as intensity rises** (Pasadyn's treadmill ramp is the
+  clearest demonstration; Etiwy's rc=0.52 for one wrist device is an
+  *exercise* figure, not an all-conditions one).
+
+So a blanket "wrist optical is unreliable" overstates the case for
+near-resting activity (yoga, stretching, pilates, gentle walking) and
+understates how bad it gets during hard efforts and intervals. Confidence in
+a strap-less HR number should scale with the session's intensity.
+
+**A useful consequence:** at near-resting intensity, wrist optical *and*
+ring PPG are both inside regimes where they have been validated (see the
+per-device dossiers for ring HR at rest). They should broadly agree there,
+which makes a low-intensity session a genuine cross-check — and a large
+disagreement a signal worth reporting. At higher intensity the comparison
+loses its footing, because one sensor is known-bad and the other unvalidated.
+
 ## Practical caveats that survive the good numbers
 
 - **Armbands lag on rapid HR transitions** (intervals, sprint starts) and are

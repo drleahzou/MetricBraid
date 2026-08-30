@@ -119,9 +119,20 @@ Routing:
    for that same session.
 2. If both subtypes are present (rare), prefer `ecg_chest_strap` — it is the
    reference standard the armband is validated against.
-3. If no external monitor, keep the **recording device's** HR and **always
-   attach an explicit low-confidence flag**. Say it in words; never report a
-   bare number.
+3. If no external monitor, keep the **recording device's** HR and **scale
+   the confidence flag to intensity** — the wrist-optical penalty is not
+   constant. Both ECG studies found all devices accurate *at rest*, with
+   accuracy falling as intensity rises; rc≈0.52 is an *exercise* figure.
+   - *Near-resting* (yoga, stretching, pilates, gentle walking): wrist
+     optical is inside its validated-good regime. Report normally; note the
+     missing monitor once, without alarm.
+   - *Moderate/high intensity*: explicit low-confidence flag, in words.
+   - *Intervals*: lowest non-water confidence — optical lags transitions, so
+     the average can look fine while peaks and recoveries are wrong.
+   - *Swimming / in-water*: unreliable from **every** sensor class. Water
+     defeats wrist optical, and BLE/ANT+ does not transmit through water, so
+     a strap cannot help unless it records onboard. Never compare a swim HR
+     against another session's.
 4. **`ring_ppg` never takes over from `wrist_optical`.** No monitor does not
    mean the ring wins — it means nobody has trustworthy in-workout HR.
    Swapping a measured-poor number for an unmeasured one is a downgrade
@@ -217,6 +228,22 @@ under which rule," you can't defend the number.
 
 When computing daily totals, be explicit about which source contributed
 which portion, so the math can be sanity-checked.
+
+## Known data-source defects
+
+**Check `devices.yaml` → `known_defects` before trusting any tool's output.**
+These bugs return plausible-looking data rather than an error, so checking
+for failures will not catch them.
+
+- **Oura `get_heart_rate` ignores the date range** (observed 2026-08-30):
+  three different dates returned byte-identical summaries. Do not use it for
+  date-specific analysis — say the data is unavailable rather than reporting
+  what it returns. Oura-vs-other-device HR comparison is currently impossible.
+- **Oura `get_workouts` can duplicate bouts** — run intra-source dedup first.
+
+On finding a new defect: verify it (same request, different inputs, look for
+impossible invariance), tell the user, record it, and **do not quietly route
+around it.** A silently wrong number is worse than a missing one.
 
 ## Evidence discipline
 

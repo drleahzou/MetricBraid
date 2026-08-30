@@ -175,12 +175,37 @@ criterion, the armband beat the wrist by roughly 4.5× on mean absolute error.
    `ecg_chest_strap` — it is the reference standard the armband is validated
    *against*.
 3. If no external monitor was present, keep the **recording device's** HR (it
-   is time-aligned and purpose-recorded) and **always attach an explicit
-   low-confidence flag.** Say it in words — do not report a bare number.
+   is time-aligned and purpose-recorded), and **scale the confidence flag to
+   the session's intensity.** The wrist-optical penalty is not a constant:
+   Pasadyn found all devices accurate **at rest**, with accuracy falling *as
+   intensity rises*. A blanket low-confidence flag overstates the problem for
+   near-resting sessions and understates the intensity dependence.
+   - **Near-resting** (yoga, stretching, pilates, gentle walking — session
+     avg HR at or near the user's resting baseline): wrist optical is inside
+     the regime where it *was* validated as accurate. Report normally; note
+     the absence of a monitor once, without alarm.
+   - **Moderate to high intensity**: apply the explicit low-confidence flag.
+     Say it in words — do not report a bare number.
+   - **Intervals or rapid HR change**: lowest confidence of the non-water
+     cases. Optical sensors lag transitions; averages may look reasonable
+     while the peaks and recoveries are wrong.
+   - **Swimming and other in-water activity**: treat in-workout HR as
+     **unreliable from every sensor class.** Water defeats wrist optical, and
+     BLE/ANT+ does not transmit through water, so a strap cannot help unless
+     it records onboard. Do not compare a swim HR against another session's.
 4. **`ring_ppg` never takes over from `wrist_optical`.** No external monitor
    does not mean the ring wins; it means *nobody* has trustworthy in-workout
    HR. Swapping in an unvalidated number because the validated-bad one looks
    bad is a downgrade disguised as an upgrade.
+
+   Note the asymmetry this creates, and use it: for **near-resting** sessions
+   both sensors are inside their validated regimes (wrist optical is accurate
+   at rest; ring HR has a measured −0.44 bpm bias overnight). So for yoga or
+   stretching the two devices should broadly **agree**, which makes them a
+   genuine cross-check. **A large disagreement on a low-intensity session is
+   a signal worth reporting**, not something to resolve by picking a winner.
+   At higher intensity the comparison loses its footing — one sensor is
+   known-bad and the other unvalidated — so a disagreement there says little.
 5. **Never average across sensor classes.**
 
 **Two caveats that survive the good numbers:** optical armbands can lag
@@ -281,6 +306,26 @@ inherits `general/` and nothing more.
   surfaces (new validation study, new firmware, a device change), raise it,
   record it, and only then propose a rule edit — and log the edit in
   `evidence/CHANGELOG.md`, including reviews that conclude "no change."
+
+## KNOWN DATA-SOURCE DEFECTS
+
+**Check `devices.yaml` → `known_defects` before trusting any tool's output.**
+These are bugs that return plausible-looking data rather than an error, so
+they cannot be caught by checking for failures.
+
+Currently recorded:
+
+- **Oura `get_heart_rate` ignores the date range** (observed 2026-08-30).
+  Three different dates returned byte-identical summaries. **Do not use it
+  for date-specific analysis** — say the data is unavailable rather than
+  reporting what it returns. This also means **Oura-vs-other-device HR
+  comparison is currently impossible**, which matters wherever an answer
+  would otherwise lean on it.
+- **Oura `get_workouts` can duplicate bouts** — run intra-source dedup first.
+
+When you hit a new defect: verify it (same request, different inputs, look
+for impossible invariance), tell the user, add it here, and **do not quietly
+route around it**. A silently wrong number is worse than a missing one.
 
 ## USE EVERYTHING AVAILABLE — DON'T PRE-FILTER
 

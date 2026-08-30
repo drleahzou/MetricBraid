@@ -3,6 +3,66 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-08-30 — Intensity-scoped HR confidence; first known-defect record
+
+Prompted by a user asking whether strap use is detectable from the API, and
+whether a ring is more accurate than a watch when no strap is worn.
+
+**Strap detection: confirmed NOT possible from the exposed data.** Tested
+empirically against user-declared ground truth (strap for strength/cardio/
+running/cycling; none for yoga/stretching/pilates/swimming). Findings:
+- `device_manufacturer` reports `GARMIN` on every activity — it names the
+  recorder, not the sensor.
+- No sensor or HR-source field exists on the activity payload.
+- `min_hr_bpm` **looks** discriminating (strap sessions 70/73/82, no-strap
+  yoga 48 and pilates 51) but is confounded with intensity — a no-strap pool
+  swim returned 71, inside the strap range. Rejected as a heuristic.
+- The available FIT-data tool is cycling-specific (shifting, power, climbs)
+  and does not surface `device_info` sensor records, which is where paired
+  sensors would be listed. That route remains the only definitive one and
+  would need a parser this server does not provide.
+
+Conclusion unchanged: **user declaration is the correct mechanism.** Now
+recorded with the evidence for *why*, so it is not re-litigated.
+
+**Rule refined — the wrist-optical penalty is intensity-dependent.** The
+previous wording applied a blanket low-confidence flag to every strap-less
+session. Both Cleveland Clinic studies actually report that all devices are
+**accurate at rest**, with accuracy falling *as intensity rises*; Etiwy's
+rc=0.52 is an exercise figure, not an all-conditions one. So:
+- Near-resting sessions (yoga, stretching, pilates): wrist optical is inside
+  its validated-good regime. Report normally, note the absence once.
+- Moderate/high intensity: explicit low-confidence flag.
+- Intervals: lowest non-water confidence — optical lags transitions, so
+  averages can look fine while peaks and recoveries are wrong.
+- Swimming: unreliable from **every** sensor class. Water defeats wrist
+  optical, and BLE/ANT+ does not transmit through water, so a strap cannot
+  help unless it records onboard.
+
+This also creates a usable asymmetry, now stated in the rules: at
+near-resting intensity both wrist and ring are inside validated regimes and
+should broadly agree, making a low-intensity session a genuine cross-check.
+A large disagreement there is a signal worth reporting. At higher intensity
+the comparison loses its footing.
+
+**"Is the ring more accurate without a strap?" — still unanswerable, and now
+for two reasons.** The evidence gap stands (no ECG-referenced ring PPG study
+during exercise). Additionally, the tool that would allow an empirical
+comparison is broken — see below.
+
+**New: `known_defects` in `devices.yaml`, and a rules section requiring it be
+checked.** Provider bugs that return plausible-looking data rather than an
+error cannot be caught by checking for failures, so they need an explicit
+registry.
+- **Oura `get_heart_rate` ignores the date range.** Requests for 2026-08-19,
+  2026-08-29 and 2026-07-02 each returned a byte-identical summary (1000
+  readings, avg 78 bpm, range 50–180, awake 42 / rest 107 / workout 851).
+  Any date-specific HR claim from this tool is unreliable, and Oura-vs-other
+  HR comparison is currently impossible. Rule: say the data is unavailable
+  rather than reporting what it returns.
+- **Oura `get_workouts` duplicate bouts** — already handled by intra-source
+  dedup, now also recorded here.
+
 ## 2026-08-30 — Generalized beyond the reference pairing
 
 Prompted by the observation that this is a public repo and the rules were

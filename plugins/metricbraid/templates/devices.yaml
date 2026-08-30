@@ -63,16 +63,61 @@ external_hr_monitors:
       pairs_with: [garmin, oura]   # any BLE HR Service device pairs with both
 
   worn_for:
-    default_for_recorded_workouts: ecg_chest_strap
+    # Declared by the user 2026-08-30. No API reports the HR sensor, so this
+    # is the source of truth for which sessions have strap-grade HR.
+    ecg_chest_strap:
+      - strengthTraining
+      - strength_training
+      - indoor_cardio
+      - cardio
+      - running
+      - treadmill_running
+      - cycling
+      - indoor_cycling
     none:
-      - swimming        # BLE/ANT+ does not transmit through water. Live HR
-                        # needs onboard store-and-forward ON THE MONITOR —
-                        # verify for your specific model, do not assume.
-    unknown:            # <- move these into a list above once confirmed
       - yoga
       - stretching
-      - strengthTraining
-      - indoor_cardio
+      - pilates
+      - swimming        # the HRM 200 is not a swimming strap. Separately,
+                        # BLE/ANT+ does not transmit through water at all —
+                        # live HR would need onboard store-and-forward on the
+                        # monitor itself.
+    unknown: []         # anything not listed above is treated as `none`
+                        # for confidence purposes — flag, don't assume.
+
+# ---------------------------------------------------------------------------
+# KNOWN DATA-SOURCE DEFECTS
+# Bugs in a provider's API or MCP server that silently corrupt analysis.
+# Check this list before trusting a tool's output.
+# ---------------------------------------------------------------------------
+known_defects:
+  - source: oura
+    tool: get_heart_rate
+    observed: 2026-08-30
+    severity: high
+    problem: >-
+      Ignores the date range. Requests for 2026-08-19, 2026-08-29 and
+      2026-07-02 each returned a byte-identical summary (1000 readings,
+      avg 78 bpm, range 50-180, awake 42 / rest 107 / workout 851). It
+      appears to return a single fixed window regardless of the dates asked
+      for.
+    consequence: >-
+      Any per-day heart-rate claim sourced from this tool is unreliable, and
+      any Oura-vs-other-device HR comparison is currently impossible. The
+      failure is silent — it returns plausible-looking data, not an error.
+    until_fixed: >-
+      Do not use get_heart_rate for date-specific analysis. Say the data is
+      unavailable rather than reporting the returned numbers.
+
+  - source: oura
+    tool: get_workouts
+    observed: 2026-08-28
+    severity: medium
+    problem: >-
+      Can return the same bout multiple times with slightly different
+      calorie values (one walking bout appeared 3x: 56 / 56 / 55.746 kcal).
+    consequence: Inflates daily totals if not deduplicated within-source.
+    until_fixed: Run the intra-source dedup step in CLAUDE.md first.
 
 # ---------------------------------------------------------------------------
 # TIEBREAKS — used when two devices declare the same capability class.
