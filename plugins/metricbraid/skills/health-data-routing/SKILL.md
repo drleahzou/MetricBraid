@@ -18,8 +18,12 @@ A rule never says "Oura wins sleep." It says *the passively-worn continuous
 sensor wins passive signals*. Each device declares which capability classes
 it has:
 
-- **Oura** declares `passive_247` + `auto_detected`
+- **Oura** declares `passive_247` + `auto_detected` + `recorded_workout`
+  (Live Activity Tracking, shipped 2026-06-04, records sessions and pairs
+  external BLE heart-rate straps)
 - **Garmin** declares `recorded_workout` + `auto_detected`
+
+"Garmin records, Oura detects" is **no longer a safe assumption** anywhere.
 
 **The RECORD carries the class, not the device.** An Oura auto-detected
 walk routes through Rule C even though Oura also owns Rule A. Never name a
@@ -55,23 +59,68 @@ What Rule A obliges in practice:
 Nutrition is explicitly **not** covered by Rule A — see Rule D.
 
 ### Rule B — `recorded_workout`: deliberately recorded sessions
-**The recording device is the source of truth** (here: Garmin) for
-in-workout heart rate, pace, power, cadence, training load, VO2max, and any
-new workout-analysis metric. This overrides the other device's estimate of
-the same activity, always.
+**Status: VERIFIED.** Rule B routes **two channels separately** — this is
+the part that is easy to get wrong.
 
-**Status: VERIFIED, with one scoped caveat.** The recording always wins the
-EVENT — it is the only device with GPS, pace, duration, power. But
-in-workout **HR** is only fully authoritative when a chest strap was worn.
-Strap-less wrist-optical in-workout HR carries large documented error
-(Garmin wrist optical rc≈0.52 vs ECG during exercise, vs rc≈0.99 for chest
-strap). Treat it as lower-confidence and say so — especially for swims and
-high-intensity work.
+**EVENT channel** (GPS, pace, distance, duration, power, cadence, training
+load, VO2max): the device that recorded with the richer sensor set wins,
+always. In this pairing that is effectively always Garmin.
+
+**HR channel**: the **best HR sensor class present wins, regardless of which
+device or app recorded the session.** Do not assume the event winner also
+wins HR.
+
+Route by sensor class **and placement** — never by brand, never by which
+app recorded the session.
+
+| Class | What it is | Trust |
+|---|---|---|
+| `ecg_chest_strap` | Any chest strap, any brand (Garmin HRM, Polar H10, Wahoo, any BLE HR Service strap) | **Highest** — rc=0.98–0.99 vs ECG; used as the *criterion* in other studies |
+| `optical_armband` | Optical PPG at upper arm/forearm — Polar Verity Sense/OH1, Wahoo Tickr Fit, Scosche Rhythm | **High** — MAE 1.43 bpm, CCC 1.00 (upper arm); ICC 0.99 across arm sites |
+| `wrist_optical` | Watch PPG at the wrist | **Low during exercise** — MAE 6.41 bpm, CCC 0.92 head-to-head; rc≈0.52; worsens as intensity rises |
+| `ring_ppg` | Ring PPG | **Unknown during exercise** — no validation exists; ring evidence is nocturnal/at-rest only |
+| `other_ble` | Earbuds, gym equipment, any other BLE HR broadcaster | **Unknown, uncited** — treat as undeclared |
+
+The first two together are the routing class **`external_hr_monitor`**.
+Placement is the variable, not brand or price: optical at the arm is a
+different accuracy regime from optical at the wrist (less motion artifact,
+better optical coupling), and beat the wrist ~4.5× on MAE in a same-brand,
+same-protocol head-to-head.
+
+Routing:
+1. If any overlapping record has an `external_hr_monitor` (**either**
+   subtype), **its HR wins the HR channel** even if another device won the
+   event channel. An armband or strap paired to the Oura app beats an
+   unmonitored Garmin watch for HR, while Garmin still owns pace/GPS/power
+   for that same session.
+2. If both subtypes are present (rare), prefer `ecg_chest_strap` — it is the
+   reference standard the armband is validated against.
+3. If no external monitor, keep the **recording device's** HR and **always
+   attach an explicit low-confidence flag**. Say it in words; never report a
+   bare number.
+4. **`ring_ppg` never takes over from `wrist_optical`.** No monitor does not
+   mean the ring wins — it means nobody has trustworthy in-workout HR.
+   Swapping a measured-poor number for an unmeasured one is a downgrade
+   disguised as an upgrade.
+5. **Never average across sensor classes.**
+
+Armbands lag on rapid HR transitions and are placement-sensitive, so a chest
+strap stays preferable for interval work.
+
+**Monitor use is not detectable from the APIs.** `device_manufacturer` names
+the *recorder*, not the sensor, and running dynamics are not a proxy on
+watches that generate them at the wrist (e.g. Forerunner 955). It must be
+**declared by the user in `CLAUDE.md`**. If undeclared for that activity
+type, say so and treat it as unmonitored for confidence — do not infer.
 
 ### Rule C — `auto_detected`: incidental activity with no matching record
 Walks, chores, general movement, steps. **The detecting device is the
 source of truth**, since nothing else has a record of it. Usually Oura in
 this pairing, but Garmin auto-detections route here too.
+
+**Match on the absence of a competing recorded session, not on a source
+label** — Oura's `source` field returns `autodetected`, `confirmed`, and
+`manual`, and a user-confirmed auto-detection is still Rule C.
 
 **Status: VERIFIED for attribution** (logically forced — sole detector, no
 competing record). **Magnitude is approximate**: consumer step counts run
@@ -118,8 +167,20 @@ and ask.
 2. If they overlap, they are the **SAME real-world event**. Use a **±12
    minute overlap buffer** — the midpoint of the 10–15 min lag between a
    real event and a ring's auto-detection of it.
-3. Keep the recorded version for workout metrics. **ABSORB** the
-   auto-detected duplicate — record that it was merged, then drop it.
+3. **Deduplicate within each source first.** A single provider can emit
+   near-identical records for one event (observed: Oura returned one walking
+   bout three times in a day, calories 56 / 56 / 55.746). Near-identical
+   values are the tell, not a counter-argument. Skipping this inflates daily
+   totals before any cross-source comparison runs.
+4. **Recorded vs auto-detected**: keep the recorded version's metrics,
+   **ABSORB** the auto-detected duplicate — record that it was merged, then
+   drop it.
+5. **Recorded vs recorded** (now possible — both devices record): still ONE
+   event. Do not pick a single winner for the whole record — **merge by
+   channel**: event channel to the richer recorder, HR channel to whichever
+   carries an `external_hr_monitor`. Record `merged_from` for both and say
+   which channel
+   came from where.
 4. **Never average the two.** Averaging invents a value neither sensor
    measured, which is worse than either.
 5. Only count an auto-detected session as genuine incidental activity if it

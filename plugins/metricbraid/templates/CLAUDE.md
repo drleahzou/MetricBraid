@@ -24,36 +24,50 @@ feature set.
 **Route by capability class, not by brand.** A rule never says "Oura wins
 sleep"; it says "the passively-worn continuous sensor wins passive signals,"
 and each device declares which capability classes it has. Oura declares
-`passive_247` + `auto_detected`; Garmin declares `recorded_workout` +
-`auto_detected`. The RECORD carries the class, not the device — so an Oura
-auto-detected walk routes through Rule C even though Oura also owns Rule A.
+`passive_247` + `auto_detected` + `recorded_workout` (since Live Activity
+Tracking, 2026-06-04); Garmin declares `recorded_workout` + `auto_detected`.
+The RECORD carries the class, not the device — so an Oura auto-detected walk
+routes through Rule C even though Oura also owns Rule A, and an Oura Live
+Activity routes through Rule B even though Garmin also owns Rule B.
 Never name a brand to pick a winner; name the capability that produced the
 record.
 
 - **Rule A — `passive_247`: passive/continuous physiological monitoring**
-  (worn 24/7, measured passively): **Oura is the source of truth.** This
+  (worn 24/7, measured passively): **the continuously-worn passive sensor
+  is the source of truth** (in this pairing, Oura). This
   covers sleep architecture, resting HR, HRV, temperature, readiness/recovery
   scores, stress, and any other passive biometric Oura measures now or adds
   in future. **Status: PROVISIONAL — say so when leaning on it** (see
   EVIDENCE STATUS below). **Nutrition is explicitly NOT covered by this rule
   — see Rule D.** If Oura ships meal/nutrition tracking, it does not become
   the source of truth for intake; at most it is a cross-check against Rule D.
-- **Rule B — `recorded_workout`: deliberately recorded sessions**: **Garmin
-  is the source of truth** for any session actively recorded on the device —
-  in-workout heart rate, pace, power, cadence, training load, VO2max, and any
-  new workout-analysis metric Garmin adds. This overrides Oura's estimate of
-  the same activity, always, regardless of what the metric is called.
-  **Status: VERIFIED, with one scoped caveat** — the recording always wins
-  the EVENT (it is the only device with GPS, pace, duration, power), but
-  in-workout **HR** is only fully authoritative when the HRM chest strap was
-  worn. Strap-less wrist-optical in-workout HR carries a large documented
-  error (Garmin wrist optical rc≈0.52 vs ECG during exercise) — treat it as
-  lower-confidence and say so, especially for swims and high-intensity work.
+- **Rule B — `recorded_workout`: deliberately recorded sessions**: **the
+  recording device is the source of truth** for any actively recorded
+  session. **Status: VERIFIED**, but Rule B routes **two channels
+  separately** — this is the part that is easy to get wrong:
+  - **EVENT channel** (GPS, pace, distance, duration, power, cadence,
+    training load, VO2max, and any new workout-analysis metric): the
+    device that recorded the session with the richer sensor set wins,
+    always. In this pairing that is effectively always Garmin — it is the
+    only one with GPS, a barometer, and running/cycling dynamics.
+  - **HR channel**: **the best HR sensor class present in that window wins,
+    regardless of which device or app recorded the session.** Any dedicated
+    external monitor — chest strap *or* optical armband, any brand — beats
+    wrist and ring. See HEART-RATE SOURCE below. Do not assume the event
+    winner also wins HR.
+
+  Never merge the two channels by averaging. Report each with its own
+  provenance and its own confidence.
 - **Rule C — `auto_detected`: incidental activity with no matching recorded
   session** (walks, chores, general movement, steps, and any new
   auto-detected activity type either device adds): **the detecting device is
   the source of truth**, since nothing else has a record of it. In this
   pairing that is usually Oura, but Garmin auto-detections route here too.
+  **Match on the absence of a competing record, not on a source label.**
+  Oura's `source` field carries `autodetected`, `confirmed`, and `manual`;
+  a user-confirmed auto-detection is still Rule C. What disqualifies a
+  record from Rule C is an overlapping *recorded* session (Rule B), not the
+  value in its `source` field.
   **Status: VERIFIED for attribution** (logically forced — sole detector, no
   competing record). **Magnitude is approximate**: consumer step counts run
   ~9% low on average and free-living accuracy is materially worse than lab,
@@ -75,6 +89,82 @@ record.
   monitoring, activity, or nutrition), don't guess silently — flag it to the
   user (see STAY CURRENT below), ask which rule it should follow, then
   propose adding it to this file.
+
+## HEART-RATE SOURCE (Rule B, HR channel)
+
+In-workout HR is the one channel where the recording device does **not**
+automatically win. Route it by **sensor class and placement — never by brand,
+and never by which app started the session.**
+
+| Class | What it is | Trust |
+|---|---|---|
+| `external_hr_monitor` | A dedicated HR device worn away from the wrist. Two subtypes below. | **High** |
+| ├ `ecg_chest_strap` | Electrical, reads the ECG signal directly — Garmin HRM, Polar H10, Wahoo, any BLE HR Service strap | **Highest.** rc=0.98–0.99 vs ECG; used as the *criterion* in other studies |
+| └ `optical_armband` | Optical PPG at the upper arm or forearm — Polar Verity Sense/OH1, Wahoo Tickr Fit, Scosche Rhythm | **High.** MAE 1.43 bpm, MAPE 1.35%, CCC 1.00 (upper arm); ICC 0.99 across arm sites |
+| `wrist_optical` | Watch PPG at the wrist | **Low during exercise.** MAE 6.41 bpm, CCC 0.92 in head-to-head; rc≈0.52 (Garmin FR235); degrades as intensity rises |
+| `ring_ppg` | Ring PPG | **Unknown during exercise — no validation exists.** Ring HR/HRV evidence is nocturnal/at-rest only |
+| `other_ble` | Earbuds, gym equipment, anything else broadcasting BLE HR | **Unknown — uncited.** Treat as undeclared |
+
+**Placement, not brand, is what the evidence separates.** Optical at the arm
+is a different measurement problem from optical at the wrist: less motion
+artifact and better optical coupling. An armband is *not* a downgrade from a
+chest strap for routing purposes — in a direct head-to-head against an ECG
+criterion, the armband beat the wrist by roughly 4.5× on mean absolute error.
+
+**Routing:**
+
+1. If any record overlapping the session has an `external_hr_monitor`
+   (either subtype), **its HR wins the HR channel** — even if a different
+   device won the event channel. A Polar Verity Sense armband paired to the
+   Oura app beats a strap-less Garmin watch for HR, and the Garmin recording
+   still owns pace/GPS/power for the same session.
+2. If both subtypes are present for one session (rare), prefer
+   `ecg_chest_strap` — it is the reference standard the armband is validated
+   *against*.
+3. If no external monitor was present, keep the **recording device's** HR (it
+   is time-aligned and purpose-recorded) and **always attach an explicit
+   low-confidence flag.** Say it in words — do not report a bare number.
+4. **`ring_ppg` never takes over from `wrist_optical`.** No external monitor
+   does not mean the ring wins; it means *nobody* has trustworthy in-workout
+   HR. Swapping in an unvalidated number because the validated-bad one looks
+   bad is a downgrade disguised as an upgrade.
+5. **Never average across sensor classes.**
+
+**Two caveats that survive the good numbers:** optical armbands can lag
+during rapid HR transitions (intervals, sprint starts), and they are
+placement-sensitive — a loose or mis-sited band degrades badly. For interval
+work specifically, a chest strap remains preferable.
+
+### External HR monitor declaration (EDIT THIS — it is user-specific)
+
+The APIs do **not** expose which HR sensor fed a session. Garmin's
+`device_manufacturer` names the *recorder*, not the sensor. Running dynamics
+are **not** a proxy either — a Forerunner 955 produces them from the wrist.
+So monitor use must be declared here:
+
+```yaml
+# Registered hardware: Garmin Forerunner 955 (watch), Garmin HRM 200 (chest strap)
+external_hr_monitor:
+  default_for_recorded_workouts: ecg_chest_strap   # "I usually wear the strap"
+  none:
+    - swimming        # BLE/ANT+ does not transmit through water, and the
+                      # HRM 200 has no store-and-forward, so pool HR is
+                      # wrist-optical regardless of what was worn.
+                      # (An armband with onboard recording, e.g. Verity Sense
+                      # on a goggle strap, would be an exception — declare it.)
+  unknown:            # ← confirm and move these into a list above
+    - yoga
+    - stretching
+    - strengthTraining
+    - indoor_cardio
+```
+
+**Treat `unknown` as no-monitor for confidence purposes** — flag the HR as
+low-confidence rather than silently assuming one was worn. When an activity
+type in `unknown` matters to a conclusion, ask rather than guess.
+
+If the declaration is missing or the activity type isn't listed, say the
+monitor status is undeclared instead of inferring it.
 
 ## NUTRITION DATA INTAKE (Rule D mechanics)
 
@@ -159,16 +249,32 @@ evidence is kept honest. Dossiers live in `evidence/`
 ## DEDUPLICATION LOGIC (critical — do this before any analysis)
 
 - Before combining or summing activity data, check for time-overlapping
-  events between Garmin's recorded activities and Oura's auto-detected
-  sessions/workouts.
-- If a Garmin activity and an Oura auto-detected session overlap in
-  start/end time, treat them as the SAME real-world event. **Use a ±12 minute
-  overlap buffer** — the midpoint of the 10–15 min lag between a real event
-  and a ring's auto-detection of it. Keep Garmin's
-  version for workout metrics (HR, pace, power, calories for that session)
-  and ABSORB Oura's duplicate entry — record that it was merged, then drop
-  it. **Never average the two**: averaging invents a value neither sensor
-  measured, which is worse than either.
+  events — across sources AND within each source. Both providers can now
+  emit recorded sessions, so "Garmin records, Oura detects" is no longer a
+  safe assumption.
+- **Use a ±12 minute overlap buffer** throughout — the midpoint of the
+  10–15 min lag between a real event and a ring's auto-detection of it.
+- **Case 1 — recorded vs auto-detected** (the common one): if a Garmin
+  activity and an Oura auto-detected session overlap, treat them as the SAME
+  real-world event. Keep the recorded version's metrics and ABSORB the
+  auto-detected entry — record that it was merged, then drop it.
+- **Case 2 — recorded vs recorded** (new: Oura Live Activity, shipped
+  2026-06-04, can now record sessions too): two recorded sessions that
+  overlap are still ONE event. Do not pick a single winner for the whole
+  record — **merge by channel**: event channel to the richer recorder
+  (GPS/pace/power), HR channel to whichever carries an
+  `external_hr_monitor` (see HEART-RATE SOURCE). Record `merged_from` for both, and note explicitly
+  which channel came from which device.
+- **Case 3 — duplicates within ONE source**: a single provider can emit
+  near-identical records for one event (observed in this account: Oura
+  returned the same `walking 1:11–1:38 PM` bout three times on 2026-08-28,
+  with calories 56 / 56 / 55.746). Deduplicate *within* each source before
+  comparing across sources, or daily totals inflate. Match on overlapping
+  time window and activity type; keep one, record the collapse. **Do not
+  treat near-identical calorie values as evidence of separate events** — the
+  small numeric differences are the tell, not a counter-argument.
+- **Never average**: averaging invents a value neither sensor measured,
+  which is worse than either.
 - Only count an Oura auto-detected session as genuine incidental activity if
   it has no corresponding Garmin activity in that time window.
 - **Carry provenance on every number you report**: which source produced it,

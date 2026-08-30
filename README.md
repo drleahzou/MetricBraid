@@ -27,7 +27,7 @@ Rule A.
 | Rule | Capability class | Source of truth | Status |
 |---|---|---|---|
 | **A** | `passive_247` — continuous physiological monitoring | The 24/7 passive sensor (here: Oura) | 🟡 [**Provisional**](evidence/rule-a-passive.md) |
-| **B** | `recorded_workout` — deliberately recorded sessions | The recording device (here: Garmin) | 🟢 [**Verified**, one caveat](evidence/rule-b-recorded-workouts.md) |
+| **B** | `recorded_workout` — deliberately recorded sessions | The richer recorder for the event; the **best HR sensor class** for heart rate | 🟢 [**Verified**, one open gap](evidence/rule-b-recorded-workouts.md) |
 | **C** | `auto_detected` — incidental activity, no matching record | Whichever device detected it | 🟢 [**Verified** for attribution](evidence/rule-c-incidental.md) |
 | **D** | Self-reported nutrition | The user's own food log | ⚪ Outside the capability model |
 
@@ -94,20 +94,25 @@ worth stealing:
 
 1. **Never average two sensors.** Averaging invents a value neither device
    measured. Pick a winner by rule, absorb the loser, record the merge.
-2. **Carry provenance on every number.** Which source produced it, which
+2. **Route channels, not records.** One session can have its pace from one
+   device and its heart rate from another. A chest strap paired to the ring's
+   app beats a strap-less watch for HR while the watch still owns GPS and
+   power — because the strap is the sensor and the watch is only the
+   recorder.
+3. **Carry provenance on every number.** Which source produced it, which
    rule selected it, what was merged into it, whether the governing rule is
    provisional. If you can't answer that, you can't defend the number.
-3. **Never cite a study from memory.** Accuracy claims come from [a dossier
+4. **Never cite a study from memory.** Accuracy claims come from [a dossier
    in `evidence/`](evidence/) or they get read against the primary source
    first.
-4. **A new finding is never an automatic rule change.** Raise it, record
+5. **A new finding is never an automatic rule change.** Raise it, record
    it, then propose the edit — and log it, even when the conclusion is
    "no change."
-5. **Personal baseline over population norms.** Given a ~15 ms RMSSD
+6. **Personal baseline over population norms.** Given a ~15 ms RMSSD
    underestimate and ~9% step underestimate, a population norm compared
    against a biased absolute number is meaningless. Their own history is
    the only valid reference frame.
-6. **Name the weakest number.** Energy expenditure is the least accurate
+7. **Name the weakest number.** Energy expenditure is the least accurate
    metric in the system, from any brand. Never build a conclusion on it.
 
 ## Adapting it to other devices

@@ -18,7 +18,7 @@ each dossier. **Nothing here is cited from memory.**
 | Rule | Covers | Status | Dossier |
 |---|---|---|---|
 | **A** | Passive 24/7 signals — sleep, HRV, resting HR, temperature, stress | 🟡 **Provisional** | [rule-a-passive.md](rule-a-passive.md) |
-| **B** | Deliberately recorded workouts — in-workout HR, pace, power, load | 🟢 **Verified**, one caveat | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
+| **B** | Deliberately recorded workouts — event channel (pace/power/load) and HR channel, routed separately | 🟢 **Verified**, one open gap | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
 | **C** | Incidental auto-detected activity — walks, steps, general movement | 🟢 **Verified** for attribution | [rule-c-incidental.md](rule-c-incidental.md) |
 | **D** | Self-reported nutrition | ⚪ No dossier — outside the capability model | *(see `CLAUDE.md`)* |
 
@@ -28,8 +28,8 @@ research bears on it. Its reliability grading is how the entry was captured
 
 ## Every paper cited
 
-Six studies, all independent of the manufacturers except where noted in the
-dossier.
+Eight studies, all independent of the manufacturers except where noted in
+the dossier.
 
 ### Rule A — passive signals (provisional)
 
@@ -46,11 +46,38 @@ dossier.
 | Etiwy et al. 2019, *Cardiovasc Diagn Ther* — [article](https://cdt.amegroups.org/article/view/25572/24196) · [doi](https://doi.org/10.21037/cdt.2019.04.08) | ECG (Mason-Likar) | 80 | Chest strap **rc=0.99**; Garmin Forerunner 235 wrist optical **rc=0.52** during exercise |
 | Pasadyn/Gillinov et al. 2019, *Cardiovasc Diagn Ther* — [PMC6732081](https://pmc.ncbi.nlm.nih.gov/articles/PMC6732081/) · [doi](https://doi.org/10.21037/cdt.2019.06.05) | 3-lead ECG | 50 | Chest strap rc=0.98; wrist optical degrades **as intensity rises** |
 
+### Rule B — external HR monitors: placement beats brand (verified)
+
+| Study | Reference standard | n | Key finding |
+|---|---|---|---|
+| Hettiarachchi et al. 2019, *PLOS One* — [article](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0217288) · [doi](https://doi.org/10.1371/journal.pone.0217288) | 64-channel ECG | 24 | Polar OH1 optical armband: **ICC 0.99** at forearm, upper arm and temple; bias 0.27–0.33 bpm |
+| Schweizer & Gilgen-Ammann 2025, *JMIR Cardio* — [PMC11951816](https://pmc.ncbi.nlm.nih.gov/articles/PMC11951816/) · [doi](https://doi.org/10.2196/67110) | Polar H10 ECG chest strap | 16 | Head-to-head, nine activities to HIIT: upper arm MAE **1.43 bpm** / CCC **1.00** vs wrist MAE **6.41 bpm** / CCC 0.92 |
+
+These two are why the HR hierarchy is keyed on **placement**, not on
+"strap or not". An optical armband is not a cheap chest strap — it is a
+different accuracy regime from optical at the wrist, and it sits in the
+high-trust tier alongside the chest strap.
+
 ### Rule C — incidental activity (verified)
 
 | Study | Design | Scale | Key finding |
 |---|---|---|---|
 | Fuller et al. 2020, *JMIR mHealth uHealth* — [full text](https://mhealth.jmir.org/2020/9/e18694/) · [doi](https://doi.org/10.2196/18694) | Systematic review | 158 publications, 169 studies, 5,934 participants | Steps are the most-validated consumer metric (mean ≈ **−9%** underestimate); **energy expenditure is accurate for no brand** |
+
+### Open gaps — recorded, not resolved
+
+Tracked in [watchlist.yaml](watchlist.yaml). A gap stays open until evidence
+meeting the source-quality bar closes it; it is never closed by preference.
+
+- **Ring PPG during exercise (Rule B).** When no external HR monitor is worn, the
+  choice is between a *known-bad* number (wrist optical, rc≈0.52) and an
+  *unvalidated* one (ring PPG — all ring HR/HRV validation above is
+  nocturnal or at-rest). No ECG-referenced study of ring PPG during exercise
+  exists, so the ring is **not** promoted. The rule keeps the recording
+  device's HR with a mandatory low-confidence flag.
+- **Oura Live Activity Tracking accuracy (Rule B).** Shipped 2026-06-04 with
+  GPS/pace and external strap support. No test meeting the source-quality
+  bar yet; consumer tech-press comparisons do not qualify.
 
 ### Cited but deliberately not relied upon
 

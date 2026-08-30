@@ -21,6 +21,32 @@ sources:
     query: '(Oura OR Garmin) AND (validation OR polysomnography OR accuracy) AND (sleep OR "heart rate variability")'
     why: peer-reviewed validation literature
 
+# Open questions that would change a rule if answered. A hit here is a flag
+# for review, never an automatic edit.
+open_gaps:
+  - id: ring-ppg-during-exercise
+    opened: 2026-08-30
+    rule: B
+    question: >-
+      Is ring PPG accurate enough during exercise to beat wrist optical when
+      no chest strap is worn? All current ring HR/HRV validation is
+      nocturnal or at-rest.
+    closes_when: >-
+      An independent, ECG-referenced comparison of ring PPG during exercise
+      is published.
+    until_then: >-
+      Keep the recording device's HR with a mandatory low-confidence flag.
+      Do not promote ring PPG.
+  - id: oura-live-activity-accuracy
+    opened: 2026-08-30
+    rule: B
+    question: >-
+      How accurate is Oura Live Activity Tracking (shipped 2026-06-04) for
+      GPS/pace versus a dedicated watch?
+    closes_when: >-
+      A tester meeting the source-quality bar publishes a reference-device
+      comparison. Consumer tech-press tests do not meet the bar.
+
 review:
   automated: weekly
   manual_full_review: quarterly
