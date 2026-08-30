@@ -235,7 +235,7 @@ which portion, so the math can be sanity-checked.
 These bugs return plausible-looking data rather than an error, so checking
 for failures will not catch them.
 
-- **Oura `get_heart_rate` ignores the date range** (observed 2026-08-30):
+- **Oura `get_heart_rate` ignores the date range** (observed 2026-08-30; [upstream issue #12](https://github.com/mitchhankins01/oura-ring-mcp/issues/12) — wrong query-param names, plus no pagination):
   three different dates returned byte-identical summaries. Do not use it for
   date-specific analysis — say the data is unavailable rather than reporting
   what it returns. Oura-vs-other-device HR comparison is currently impossible.

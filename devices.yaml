@@ -105,6 +105,13 @@ known_defects:
       Any per-day heart-rate claim sourced from this tool is unreliable, and
       any Oura-vs-other-device HR comparison is currently impossible. The
       failure is silent — it returns plausible-looking data, not an error.
+    root_cause: >-
+      src/client.ts getHeartRate() sends start_date/end_date, but the Oura
+      /v2/usercollection/heartrate endpoint takes start_datetime/end_datetime
+      (ISO 8601). Oura discards the unrecognized params and returns a default
+      window. Compounded by the client having no pagination (next_token is
+      declared but never consumed), so results also truncate at one page.
+    reported: https://github.com/mitchhankins01/oura-ring-mcp/issues/12
     until_fixed: >-
       Do not use get_heart_rate for date-specific analysis. Say the data is
       unavailable rather than reporting the returned numbers.

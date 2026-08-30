@@ -61,7 +61,23 @@ registry.
   HR comparison is currently impossible. Rule: say the data is unavailable
   rather than reporting what it returns.
 - **Oura `get_workouts` duplicate bouts** — already handled by intra-source
-  dedup, now also recorded here.
+  dedup, now also recorded here. Root cause not confirmed as a server bug:
+  the client only range-filters single-date queries, but the observed
+  triplicates came from a multi-day query, so the API itself may be returning
+  multiple records per bout. Not reported upstream without a confirmed cause.
+
+**Root cause found and reported upstream.** Read the server's source rather
+than stopping at the symptom: `getHeartRate()` sends `start_date`/`end_date`,
+but `/v2/usercollection/heartrate` takes `start_datetime`/`end_datetime` —
+Oura discards the unrecognized params and returns a default window. Every
+*other* method in that file is correct, since the daily endpoints do take
+`start_date`. Compounded by the client having no pagination at all
+(`next_token` is declared but never consumed), so results truncate at one
+page regardless. Filed as
+[mitchhankins01/oura-ring-mcp#12](https://github.com/mitchhankins01/oura-ring-mcp/issues/12)
+with a suggested fix. Isolation step worth repeating: `get_sleep` returned
+correctly date-scoped data on the same account, which localized the fault to
+one method rather than to date handling generally.
 
 ## 2026-08-30 — Generalized beyond the reference pairing
 
