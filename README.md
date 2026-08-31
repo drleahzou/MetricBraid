@@ -1,8 +1,8 @@
 # MetricBraid
 
-**MetricBraid decides which measurement an AI is allowed to believe — and records why.**
+**MetricBraid decides which measurement an AI is allowed to believe and records why.**
 
-MetricBraid is a provenance and conflict-resolution framework for AI analysis of overlapping personal sensor data.
+MetricBraid is an open-source framework for AI analysis of overlapping wearable health and sensor data, with source routing, deduplication, confidence grading, and provenance.
 
 Connect your wearable and sensor data to an AI agent, then ask questions about your sleep, recovery, activity, training, or health trends without first having to reconcile conflicting devices yourself.
 
