@@ -12,6 +12,29 @@ It sits between your sensor observations and the answer your AI gives you.
 
 ---
 
+# Choose your setup
+
+Choose the application you will use, not the underlying model. Each guide
+shows only the steps for that environment and ends with an exact verification
+prompt.
+
+| I am using | Best current route | Start here |
+|---|---|---|
+| **Claude Code** | Install the MetricBraid plugin; no repository clone required | [Claude Code quick start](docs/2026-08-31-claude-code-quick-start.md) |
+| **Codex** | Clone the repository and let its `AGENTS.md` guide Codex | [Codex quick start](docs/2026-08-31-codex-quick-start.md) |
+| **Gemini CLI, Cursor, or another agent** | Clone the portable framework and provide its project instructions | [Other agents quick start](docs/2026-08-31-other-agents-quick-start.md) |
+| **Any agent with exports or pasted observations** | Skip live integrations and provide local files | [Local-data quick start](docs/2026-08-31-local-data-quick-start.md) |
+
+If you already use Claude Code, choose that route: it has the most complete
+packaged setup. If you do not need live wearable connections, the local-data
+route has the fewest authentication steps.
+
+`SETUP.md` is the shared reference for device configuration, Oura and Garmin
+authentication, security, and troubleshooting. Start with one quick start
+above rather than reading the entire reference from top to bottom.
+
+---
+
 ## Why this exists
 
 If you use more than one tracker — a ring and a watch, a band and a chest strap, a watch and a phone — you have devices producing overlapping and sometimes contradictory claims about the same physical events.
@@ -152,56 +175,29 @@ The reasoning model should not.
 
 ## Claude Code
 
-Claude Code currently has the most complete packaged setup in this repository.
-
-MetricBraid is available as a Claude Code plugin with:
-
-* bundled routing instructions;
-* `/metricbraid:metricbraid-init`;
-* plugin-local references;
-* templates;
-* bundled MCP configuration for the currently supported data integrations.
-
-See [Install with Claude Code](#claude-code-plugin--recommended).
+Claude Code has the most complete packaged setup: an installable plugin,
+interactive device interview, bundled references and MCP configuration, and a
+defined readiness check. Follow the
+[Claude Code quick start](docs/2026-08-31-claude-code-quick-start.md).
 
 ---
 
 ## Codex
 
-The MetricBraid framework can also be used with Codex.
-
-Codex needs access to:
-
-* the MetricBraid operating instructions;
-* [`devices.yaml`](devices.yaml);
-* the relevant files under [`spec/`](spec/);
-* the relevant evidence under [`evidence/`](evidence/);
-* your underlying sensor observations.
-
-The platform-specific instruction file may differ from Claude Code's `CLAUDE.md`, but the routing framework itself does not need to change.
-
-A Codex adapter can instruct the agent to apply MetricBraid before analysing sensor observations.
+The cloned repository includes an [`AGENTS.md`](AGENTS.md) adapter that tells
+Codex when to load the canonical framework and how to handle setup safely.
+Live integrations require Codex-specific MCP configuration; local files do
+not. Follow the [Codex quick start](docs/2026-08-31-codex-quick-start.md).
 
 ---
 
 ## Other agents
 
-The same principle applies to tools such as:
-
-* Gemini CLI;
-* Cursor;
-* other MCP-capable agents;
-* future local or hosted AI agents;
-* custom agent implementations.
-
-The agent needs two things:
-
-1. **the MetricBraid reasoning contract**;
-2. **access to the observations being analysed**.
-
-How those are supplied is platform-specific.
-
-The framework is not.
+Gemini CLI, Cursor, other MCP-capable tools and custom agents can use the same
+framework, but they do not yet have a packaged MetricBraid installer. Follow
+the [other agents quick start](docs/2026-08-31-other-agents-quick-start.md), or
+use the [local-data route](docs/2026-08-31-local-data-quick-start.md) for the
+smallest setup surface.
 
 ---
 
@@ -246,105 +242,21 @@ See [Data access](#data-access).
 
 ---
 
-# Install
+# Installation and setup
 
-## Claude Code plugin — recommended
-
-The easiest current setup is the Claude Code plugin.
-
-Add the marketplace:
+Use the [setup chooser](#choose-your-setup) rather than combining instructions
+from several platforms. Every quick start follows the same sequence:
 
 ```text
-/plugin marketplace add drleahzou/MetricBraid
+install → activate or open → configure devices → connect or provide data → verify
 ```
 
-Then install the `metricbraid` plugin and activate it:
+The quick starts contain the commands and prompts to copy. Use
+[`SETUP.md`](SETUP.md) only when a selected provider needs authentication or
+when you are troubleshooting.
 
-```text
-/reload-plugins
-```
-
-Inside the project where you want to use MetricBraid, run:
-
-```text
-/metricbraid:metricbraid-init
-```
-
-The init command checks prerequisites, installs the routing rules and a safe
-device registry, asks what hardware you actually use, and guides
-authentication for only the data sources you select. It also puts `SETUP.md`
-and the Oura OAuth helper into the project, so plugin users do not need a
-separate clone of this repository.
-
-The basic workflow is:
-
-```text
-install MetricBraid
-      ↓
-/reload-plugins
-      ↓
-/metricbraid:metricbraid-init
-      ↓
-check prerequisites and describe your devices
-      ↓
-authenticate selected data sources
-      ↓
-restart Claude Code
-      ↓
-run the verification prompt
-      ↓
-ask questions normally
-```
-
-For most users, configuration means:
-
-* completing authentication for the data sources they use;
-* filling in [`devices.yaml`](devices.yaml).
-
-Init ends with an exact verification prompt and tells you whether each selected
-provider is ready, pending a restart, or still needs one setup step. A missing
-credential on the first run is expected setup work, not a broken installation.
-
-See [`SETUP.md`](SETUP.md) for the same journey in manual form.
-
-> **Oura note:** Personal Access Tokens were deprecated in December 2025. Newly created PATs return `401`; OAuth2 is the supported authentication path.
-
----
-
-## Template repository
-
-MetricBraid can also be used directly as a repository.
-
-```bash
-git clone https://github.com/drleahzou/MetricBraid.git
-cd MetricBraid
-```
-
-Then follow [`SETUP.md`](SETUP.md), starting by replacing the safe empty
-`devices: []` registry with only the hardware you actually wear. The template
-does not activate the author's devices or tiebreak preferences.
-
-This is also the better starting point if you want to adapt MetricBraid to another AI agent.
-
----
-
-## Other AI agents
-
-MetricBraid does not require Claude Code.
-
-For another agent, provide access to:
-
-* the MetricBraid operating specification;
-* [`devices.yaml`](devices.yaml);
-* [`spec/`](spec/);
-* [`evidence/`](evidence/);
-* your sensor observations.
-
-Then instruct the agent to apply MetricBraid routing, deduplication, confidence, provenance, and evidence rules **before** drawing analytical conclusions from the data.
-
-A platform adapter may eventually package this automatically for a given agent.
-
-Until then, the repository itself is the portable reference implementation.
+> **Oura note:** Personal Access Tokens were deprecated in December 2025.
+> Newly created PATs return `401`; OAuth2 is the supported authentication path.
 
 ---
 
@@ -732,9 +644,28 @@ Analytical standards include:
 * lag windows;
 * sample-size honesty.
 
-The current Claude Code adapter exposes this through `CLAUDE.md`.
+The Claude Code adapter exposes this through `CLAUDE.md`. The root
+[`AGENTS.md`](AGENTS.md) gives Codex a small platform-specific entry point and
+directs it back to the same canonical specification when MetricBraid applies.
 
-Other agent adapters may expose the same canonical specification through different platform-specific instruction files.
+Other agent adapters may expose the same specification through different
+platform-specific instruction files.
+
+---
+
+## [`docs/`](docs/)
+
+Environment-specific quick starts for Claude Code, Codex, other agents, and
+local files. Each guide covers the same five-stage journey while hiding steps
+that do not apply to that environment.
+
+---
+
+## [`AGENTS.md`](AGENTS.md)
+
+The Codex adapter. Codex loads it automatically when the repository is opened;
+it keeps setup and analysis scoped to the canonical rules in `CLAUDE.md`,
+`devices.yaml`, `spec/`, and `evidence/`.
 
 ---
 
@@ -807,7 +738,9 @@ For most users, this is the main file you edit.
 
 ## [`SETUP.md`](SETUP.md)
 
-Authentication and integration setup for the bundled data sources.
+The shared device, authentication, security, and troubleshooting reference.
+Users start with a platform quick start and open this only for the provider
+sections they need.
 
 Includes the Oura OAuth2 flow.
 
@@ -846,14 +779,15 @@ Conceptually:
 ```text
 canonical MetricBraid specification
              ↓
-      generated adapters
+       platform adapters
        /      |      \
 Claude Code  Codex   others
 ```
 
 The repository-root framework files are canonical.
 
-Generated platform-specific copies should derive from them.
+Platform-specific adapters should point back to those files or generate any
+required copies from them.
 
 The existing Claude Code plugin already follows this principle.
 
@@ -864,6 +798,9 @@ setup instructions and the Oura OAuth helper.
 That means some framework content necessarily appears both at the repository root and under the plugin directory.
 
 Those copies are **not maintained independently**.
+
+The Codex [`AGENTS.md`](AGENTS.md) adapter takes the other route: it remains
+small and directs Codex to read the canonical files when MetricBraid applies.
 
 [`scripts/sync_plugin.py`](scripts/sync_plugin.py) regenerates them from the canonical repository files.
 
@@ -883,7 +820,9 @@ python3 scripts/sync_plugin.py --check
 
 Editing generated files directly under `plugins/` will be overwritten.
 
-Future agent adapters should follow the same pattern.
+Future agent adapters should likewise point back to the canonical framework or
+generate unavoidable packaged copies rather than maintaining another reasoning
+model by hand.
 
 ---
 

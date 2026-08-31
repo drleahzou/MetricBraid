@@ -7,12 +7,20 @@ follows is specific to the two MCP servers this repo currently bundles. A
 device reached some other way — a community MCP server, or a pasted export —
 skips this file entirely and is declared in `devices.yaml` like any other.
 
-The bundled MCP servers are configured in the clone's `.mcp.json` or, for a
-plugin install, the plugin's own `.mcp.json`. They install themselves on first
-launch (Garmin via `uvx`, Oura via `npx`). The only thing they need from you is
-credentials — one time each.
+The bundled MCP server definitions live in `.mcp.json`. Claude Code reads that
+format directly; Codex and other agents may use a different configuration
+format and treat it as a reference. The servers install themselves when
+launched (Garmin via `uvx`, Oura via `npx`). The only thing they need from you
+is credentials — one time each.
 
-## Start here
+## Use this after choosing your platform
+
+Start with the environment-specific quick start. In the cloned repository,
+choose it near the top of `README.md`. If Claude init copied this file into
+another project, you are already following the Claude Code route. This file is
+the shared reference for device configuration, provider authentication,
+security and troubleshooting; do not complete a provider section unless you
+use that provider.
 
 **Claude Code plugin:** after installing the plugin, run `/reload-plugins`,
 then run `/metricbraid:metricbraid-init` in the project where you want to use
@@ -20,9 +28,11 @@ MetricBraid. The command checks prerequisites, installs this guide and the
 OAuth helper into your project, asks about your actual devices, and walks you
 through the relevant authentication steps.
 
-**Cloned template repository:** configure `devices.yaml` before asking health
-questions. The safe default declares no hardware, so MetricBraid cannot route
-against someone else's device setup by accident.
+**Codex or another agent:** follow its quick start to clone and open the
+repository, then configure `devices.yaml` before asking health questions. The
+safe default declares no hardware, so MetricBraid cannot route against someone
+else's device setup by accident. Claude's `.mcp.json` does not automatically
+configure another agent.
 
 Only set up providers you actually use. Garmin and Oura are bundled, but
 neither is required; community integrations and pasted exports work with the
