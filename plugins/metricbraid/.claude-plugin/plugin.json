@@ -1,7 +1,7 @@
 {
   "name": "metricbraid",
   "description": "After installing, reload plugins and run /metricbraid:metricbraid-init in the project you want to configure. MetricBraid adds evidence-aware routing, deduplication, provenance and conflict handling for overlapping personal sensor data; Garmin and Oura integrations are bundled.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "drleahzou",
     "url": "https://github.com/drleahzou"
