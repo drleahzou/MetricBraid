@@ -2,9 +2,9 @@
 """Generate the plugin's copies of the repo's canonical files.
 
 A Claude Code plugin has to be self-contained: the skill reads its own
-`references/`, and `/metricbraid-init` copies its own `templates/`. So the
-evidence dossiers and the routed-observation contract necessarily exist twice
-in this repo.
+`references/`, and `/metricbraid:metricbraid-init` copies plugin-local
+templates, setup instructions and the OAuth helper. So selected framework,
+evidence and setup files necessarily exist twice in this repo.
 
 What is NOT necessary is maintaining both by hand. The repo-root copies are
 canonical — they are what the README and CLAUDE.md link to, what contributors
@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PLUGIN = ROOT / "plugins" / "metricbraid"
 SKILL_REFS = PLUGIN / "skills" / "health-data-routing" / "references"
 TEMPLATES = PLUGIN / "templates"
+PLUGIN_SCRIPTS = PLUGIN / "scripts"
 GH = "https://github.com/drleahzou/MetricBraid/blob/main"
 
 # Files that exist in the repo but not in the mirror: the watchlist is repo
@@ -111,6 +112,8 @@ def plan() -> list[tuple[Path, Path]]:
         (ROOT / "CLAUDE.md", TEMPLATES / "CLAUDE.md"),
         (ROOT / "devices.yaml", TEMPLATES / "devices.yaml"),
         (ROOT / "food-log.example.csv", TEMPLATES / "food-log.example.csv"),
+        (ROOT / "SETUP.md", PLUGIN / "SETUP.md"),
+        (ROOT / "scripts" / "oura_auth.py", PLUGIN_SCRIPTS / "oura_auth.py"),
         (ROOT / "spec" / "routed-observation.md", SKILL_REFS / "routed-observation.md"),
     ]
     for src in sorted((ROOT / "evidence").rglob("*")):

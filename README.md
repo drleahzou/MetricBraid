@@ -157,7 +157,7 @@ Claude Code currently has the most complete packaged setup in this repository.
 MetricBraid is available as a Claude Code plugin with:
 
 * bundled routing instructions;
-* `/metricbraid-init`;
+* `/metricbraid:metricbraid-init`;
 * plugin-local references;
 * templates;
 * bundled MCP configuration for the currently supported data integrations.
@@ -258,26 +258,40 @@ Add the marketplace:
 /plugin marketplace add drleahzou/MetricBraid
 ```
 
-Then install the `metricbraid` plugin.
-
-Run:
+Then install the `metricbraid` plugin and activate it:
 
 ```text
-/metricbraid-init
+/reload-plugins
 ```
 
-inside your project.
+Inside the project where you want to use MetricBraid, run:
 
-This installs the MetricBraid routing skill and creates the project files needed for configuration.
+```text
+/metricbraid:metricbraid-init
+```
+
+The init command checks prerequisites, installs the routing rules and a safe
+device registry, asks what hardware you actually use, and guides
+authentication for only the data sources you select. It also puts `SETUP.md`
+and the Oura OAuth helper into the project, so plugin users do not need a
+separate clone of this repository.
 
 The basic workflow is:
 
 ```text
 install MetricBraid
       ↓
-connect data sources
+/reload-plugins
       ↓
-describe your devices
+/metricbraid:metricbraid-init
+      ↓
+check prerequisites and describe your devices
+      ↓
+authenticate selected data sources
+      ↓
+restart Claude Code
+      ↓
+run the verification prompt
       ↓
 ask questions normally
 ```
@@ -287,7 +301,11 @@ For most users, configuration means:
 * completing authentication for the data sources they use;
 * filling in [`devices.yaml`](devices.yaml).
 
-See [`SETUP.md`](SETUP.md).
+Init ends with an exact verification prompt and tells you whether each selected
+provider is ready, pending a restart, or still needs one setup step. A missing
+credential on the first run is expected setup work, not a broken installation.
+
+See [`SETUP.md`](SETUP.md) for the same journey in manual form.
 
 > **Oura note:** Personal Access Tokens were deprecated in December 2025. Newly created PATs return `401`; OAuth2 is the supported authentication path.
 
@@ -302,7 +320,9 @@ git clone https://github.com/drleahzou/MetricBraid.git
 cd MetricBraid
 ```
 
-Then follow [`SETUP.md`](SETUP.md).
+Then follow [`SETUP.md`](SETUP.md), starting by replacing the safe empty
+`devices: []` registry with only the hardware you actually wear. The template
+does not activate the author's devices or tiebreak preferences.
 
 This is also the better starting point if you want to adapt MetricBraid to another AI agent.
 
@@ -837,7 +857,9 @@ Generated platform-specific copies should derive from them.
 
 The existing Claude Code plugin already follows this principle.
 
-A Claude Code plugin must be self-contained, so its skill reads local `references/` and `/metricbraid-init` copies local templates.
+A Claude Code plugin must be self-contained, so its skill reads local
+`references/` and `/metricbraid:metricbraid-init` copies local templates,
+setup instructions and the Oura OAuth helper.
 
 That means some framework content necessarily appears both at the repository root and under the plugin directory.
 

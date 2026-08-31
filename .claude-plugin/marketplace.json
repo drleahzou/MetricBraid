@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "metricbraid",
-      "description": "Wires up the bundled Garmin + Oura MCP servers and installs a hardware-agnostic routing model: capability classes decide which source governs which channel, overlapping records are deduplicated rather than summed or averaged, every number carries provenance in a canonical form, and routing confidence is kept separate from measurement confidence so provisional and unresolved reasoning has to be stated out loud.",
+      "description": "After installing, reload plugins and run /metricbraid:metricbraid-init in your project. MetricBraid wires up Garmin and Oura and adds evidence-aware routing, deduplication, provenance and explicit conflict handling for overlapping personal sensor data.",
       "source": "./plugins/metricbraid",
       "category": "productivity",
       "tags": [

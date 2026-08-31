@@ -35,27 +35,9 @@
 # inherits the device-agnostic baselines in evidence/general/ and nothing more.
 # ---------------------------------------------------------------------------
 
-devices:
-  - name: Oura Ring
-    id: oura
-    mcp_server: oura
-    capabilities: [passive_247, auto_detected, recorded_workout]
-    hr_sensor: ring_ppg
-    notes: >-
-      recorded_workout since Live Activity Tracking (2026-06-04, Gen3+), which
-      records sessions and pairs external BLE HR monitors. The ring does not
-      stream live HR without an external monitor paired.
-    evidence: evidence/devices/oura.md
-
-  - name: Garmin Forerunner 955
-    id: garmin
-    mcp_server: garmin
-    capabilities: [recorded_workout, auto_detected, passive_247]
-    hr_sensor: wrist_optical
-    notes: >-
-      Generates running dynamics from the wrist, so the presence of ground
-      contact time or vertical oscillation is NOT evidence a strap was worn.
-    evidence: evidence/devices/garmin.md
+# Safe default: no hardware is assumed. Add only devices the user actually
+# wears, using the commented examples below as a starting point.
+devices: []
 
 # ---------------------------------------------------------------------------
 # EXTERNAL HR MONITORS
@@ -65,33 +47,8 @@ devices:
 # intensity rather than assuming a monitor was worn.
 # ---------------------------------------------------------------------------
 external_hr_monitors:
-  owned:
-    - name: Garmin HRM 200
-      class: ecg_chest_strap
-      pairs_with: [garmin, oura]   # any BLE HR Service device pairs with both
-
-  worn_for:
-    # Declared by the user 2026-08-30. No API reports the HR sensor, so this
-    # declaration is the only record of which sessions have strap-grade HR.
-    ecg_chest_strap:
-      - strengthTraining
-      - strength_training
-      - indoor_cardio
-      - cardio
-      - running
-      - treadmill_running
-      - cycling
-      - indoor_cycling
-    none:
-      - yoga
-      - stretching
-      - pilates
-      - swimming        # the HRM 200 is not a swimming strap. Separately,
-                        # BLE/ANT+ does not transmit through water at all —
-                        # live HR would need onboard store-and-forward on the
-                        # monitor itself.
-    unknown: []         # anything not listed above is treated as `none`
-                        # for confidence purposes — flag, don't assume.
+  owned: []
+  worn_for: {}
 
 # ---------------------------------------------------------------------------
 # KNOWN DATA-SOURCE DEFECTS
@@ -149,17 +106,41 @@ known_defects:
 # both values and their provenance. That is a valid choice, not a gap.
 # ---------------------------------------------------------------------------
 tiebreaks:
-  passive_247: oura        # which device is reported for sleep / HRV / resting HR
-  recorded_workout: garmin # which owns the EVENT channel when BOTH devices
-                           # recorded the same session. Never the HR channel —
-                           # that routes by sensor class (Rule B).
-  auto_detected: null      # null = whichever device detected it (Rule C)
+  passive_247: null
+  recorded_workout: null # Never the HR channel; HR routes by sensor class.
+  auto_detected: null
 
 # ---------------------------------------------------------------------------
-# PRESETS — uncomment and adapt. Capability declarations only; none of these
-# carry accuracy claims, and none has a dossier in evidence/devices/ yet.
-# Contributions welcome: see evidence/devices/TEMPLATE.md.
+# EXAMPLES AND PRESETS — copy under the relevant list and adapt. Capability
+# declarations never carry accuracy claims. Oura and Garmin have dossiers;
+# the generic presets below do not yet. Contributions welcome: see
+# evidence/devices/TEMPLATE.md.
 # ---------------------------------------------------------------------------
+# Oura and Garmin are the bundled integrations. These examples are inactive
+# until copied under `devices:` above.
+#
+# - name: Oura Ring
+#   id: oura
+#   mcp_server: oura
+#   capabilities: [passive_247, auto_detected, recorded_workout]
+#   hr_sensor: ring_ppg
+#   evidence: evidence/devices/oura.md
+#
+# - name: Garmin watch
+#   id: garmin
+#   mcp_server: garmin
+#   capabilities: [recorded_workout, auto_detected, passive_247]
+#   hr_sensor: wrist_optical
+#   evidence: evidence/devices/garmin.md
+#
+# Example external monitor (add under `external_hr_monitors.owned`):
+# - name: Garmin HRM 200
+#   class: ecg_chest_strap
+#   pairs_with: [garmin, oura]
+#
+# Also declare activity types under `external_hr_monitors.worn_for`. No API
+# reliably reports which external sensor fed a session, so do not infer it.
+#
 # - name: WHOOP
 #   capabilities: [passive_247, auto_detected, recorded_workout]
 #   hr_sensor: wrist_optical      # or optical_armband when worn on the bicep
