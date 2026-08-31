@@ -20,7 +20,7 @@ changing anything.
 |---|---|---|---|
 | **Framework** | this file, [`spec/`](spec/) | Capability classes, routing rules, channel arbitration, deduplication, the two confidence axes, provenance requirements, evidence discipline, analytical standards | The model itself improves |
 | **User configuration** | [`devices.yaml`](devices.yaml), `.mcp.json`, credentials | Which devices exist, which capability classes each declares, where its HR sensor sits, tiebreak preferences, external monitors, known provider defects, integrations | The user's hardware or setup changes |
-| **Evidence** | [`evidence/`](evidence/) | Device-agnostic baselines, device-specific claims, rule-level reasoning, open gaps, confidence limits | New validation is published or a device generation ships |
+| **Evidence** | the plugin skill's `references/` ([online](https://github.com/drleahzou/MetricBraid/blob/main/evidence/)) | Device-agnostic baselines, device-specific claims, rule-level reasoning, open gaps, confidence limits | New validation is published or a device generation ships |
 
 **This file names no hardware in its rules.** It routes by capability class.
 `devices.yaml` binds classes to actual devices. If a rule here starts naming a
@@ -548,7 +548,8 @@ known_defects` with what you observed, and note it in
 
 Verdicts decay — firmware ships, generations change, a 2019 study describes a
 device nobody wears now. The rules above are only trustworthy if their
-evidence is kept honest. Dossiers live in `evidence/`, in two tiers:
+evidence is kept honest. Dossiers ship with the plugin skill as
+`references/` (`evidence/` in the repo), in two tiers:
 
 - **`evidence/general/`** — device-agnostic, multi-brand or mechanism-based.
   Every setup inherits these regardless of hardware: consumer sleep tracking,

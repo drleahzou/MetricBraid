@@ -3,6 +3,63 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-08-31 — Status model split; provenance made structural
+
+A refactor of how the model *describes* itself. **No verdict changed and no
+routing outcome changed** — logged here because the discipline requires
+recording reviews that move nothing as well as ones that do, and because the
+labels every dossier carries are different afterwards.
+
+**The single status label was doing two jobs.** "Rule C — VERIFIED for
+attribution" read as though a step count had been validated, when what is
+certain is only that nothing else recorded the bout. Rules now carry two
+independent grades:
+
+- **`routing_basis`** — `structural` · `evidence_backed` · `provisional` ·
+  `user_preference` · `unresolved`. How firmly we know which source should
+  own the signal.
+- **`measurement_confidence`** — `high` · `moderate` · `low` ·
+  `unvalidated` · `unusable`. What the number itself is worth, graded per
+  signal rather than per rule.
+
+The mapping is deliberate rather than cosmetic. Rule A: routing
+`provisional` (unchanged in substance), measurements graded individually —
+duration `high`, staging `low`, HRV `moderate` as a trend, temperature and
+all-day stress `unvalidated`. Rule B: the two channels never shared a status
+in substance, so they no longer share one on paper — `event` is `structural`,
+`heart_rate` is `evidence_backed` with measurement set by sensor class and
+intensity. Rule C: `structural` attribution, `moderate` steps, `unusable`
+energy.
+
+**`unvalidated` is now distinguished from `low` throughout.** Ring PPG during
+exercise is unstudied; wrist optical at effort is studied and poor. Only the
+second lets you say how wrong a number is likely to be, which is the whole
+reason the ring is not promoted when no strap is worn. The old vocabulary had
+one word for both.
+
+**A tiebreak is graded `user_preference`, and that grade now travels with the
+number.** It resolves routing deterministically and improves measurement
+confidence by nothing. `devices.yaml` says so where the tiebreaks are set.
+
+**Provenance became a structure rather than a habit.** `spec/routed-observation.md`
+defines the canonical form a routed metric takes — metric, channel, window,
+selected source (device *and* sensor, separately), routing rule and basis,
+measurement confidence with its dossier paths, absorbed records, preserved
+competing values, and what must be disclosed. Three worked examples cover a
+channel split, an unresolved conflict and a withheld observation.
+
+**Twelve adversarial fixtures** in `fixtures/` pin the behaviour that a prompt
+or model change could otherwise loosen silently, including the four cases where
+the system is supposed to decline. `check_fixtures.py` enforces that they, the
+spec examples and the schema share one vocabulary.
+
+**One substantive rule addition**, which is why this is not purely
+terminological: deduplication now states that **overlap is necessary but not
+sufficient**. Two genuinely separate bouts can fall inside the ±12 min buffer,
+and over-merging destroys a real session in a way that is much harder to notice
+afterwards than double-counting. Previously the rules only guarded one
+direction.
+
 ## 2026-08-30 — Evidence watch: made the automation claim true
 
 `watchlist.yaml` declared `automated: weekly` and referenced a "weekly job →

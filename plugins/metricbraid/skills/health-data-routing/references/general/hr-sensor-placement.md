@@ -14,19 +14,26 @@ change, and the wrist is the worst common site for both.
 
 ## The hierarchy
 
+Trust grades below are `measurement_confidence`, defined in
+[`../routed-observation.md`](../routed-observation.md).
+**`unvalidated` is not `low`**: `low` means studied and found poor in this
+regime, so you can say how wrong a number is likely to be; `unvalidated` means
+nobody has looked. That distinction is what stops an unstudied sensor being
+promoted over a known-imperfect one.
+
 | Class | Method / site | Evidence | Trust |
 |---|---|---|---|
 | `ecg_chest_strap` | Electrical, chest | rc **0.99** (Etiwy), rc **0.98** (Pasadyn); used as the *criterion device* by Schweizer & Gilgen-Ammann | **Highest** |
 | `optical_armband` | Optical PPG, upper arm / forearm | ICC **0.99**, bias 0.27–0.33 bpm (Hettiarachchi); MAE **1.43 bpm**, MAPE 1.35%, CCC **1.00** (Schweizer, upper arm) | **High** |
 | `wrist_optical` | Optical PPG, wrist | rc **0.52** (Etiwy, Garmin FR235); degrades as intensity rises (Pasadyn); MAE **6.41 bpm**, CCC 0.92 (Schweizer) | **Low during exercise** |
-| `ring_ppg` | Optical PPG, finger | **No exercise validation exists** — see gap below | **Unknown during exercise** |
-| `other_ble` | Earbuds, gym equipment, anything broadcasting BLE HR | No citation | **Unknown — treat as undeclared** |
+| `ring_ppg` | Optical PPG, finger | **No exercise validation exists** — see gap below | **`unvalidated` during exercise** |
+| `other_ble` | Earbuds, gym equipment, anything broadcasting BLE HR | No citation | **`unvalidated` — treat as undeclared** |
 
 ## Evidence
 
 All four entries read against the primary source on the dates shown.
 
-| Date | Source | Methodology | Devices/sites | Confidence |
+| Date | Source | Methodology | Devices/sites | Measurement confidence |
 |---|---|---|---|---|
 | 2026-07-14 | Etiwy et al. 2019, *Cardiovasc Diagn Ther* ([article](https://cdt.amegroups.org/article/view/25572/24196), DOI [10.21037/cdt.2019.04.08](https://doi.org/10.21037/cdt.2019.04.08)) | vs **ECG** (Mason-Likar), n=80 cardiac-rehab patients, rest + exercise. Independent (Cleveland Clinic), no COI. | Polar H7 strap; Apple Watch; Fitbit Blaze; Garmin Forerunner 235; TomTom Spark | High |
 | 2026-07-14 | Pasadyn/Gillinov et al. 2019, *Cardiovasc Diagn Ther* ([PMC6732081](https://pmc.ncbi.nlm.nih.gov/articles/PMC6732081/), DOI [10.21037/cdt.2019.06.05](https://doi.org/10.21037/cdt.2019.06.05)) | vs 3-lead **ECG**, n=50 healthy athletes, rest → treadmill ramp. Independent (Cleveland Clinic), no COI. | Polar H7 strap; Apple Watch III; Fitbit Ionic; Garmin Vivosmart HR; TomTom Spark 3 | High |

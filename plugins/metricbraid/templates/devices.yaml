@@ -22,9 +22,12 @@
 # HR SENSOR CLASSES (see evidence/general/hr-sensor-placement.md)
 #   ecg_chest_strap  Electrical, chest.        Highest trust.
 #   optical_armband  Optical, upper arm/forearm. High trust.
-#   wrist_optical    Optical, wrist.          Low trust during exercise.
-#   ring_ppg         Optical, finger.         Unknown during exercise.
-#   other_ble        Earbuds, gym equipment.  Unknown — treated as undeclared.
+#   wrist_optical    Optical, wrist.          Low during exercise.
+#   ring_ppg         Optical, finger.         Unvalidated during exercise.
+#   other_ble        Earbuds, gym equipment.  Unvalidated — treated as undeclared.
+#
+# These are MEASUREMENT confidence grades, and `unvalidated` is not `low`:
+# low means studied and found poor, unvalidated means nobody has looked.
 #
 # IMPORTANT: entries below declare CAPABILITIES (how a device is worn, what it
 # records) — these are checkable facts. They do NOT confer accuracy claims.
@@ -58,7 +61,8 @@ devices:
 # EXTERNAL HR MONITORS
 # No API reports which sensor fed a session, so this must be declared.
 # Undeclared activity types are treated as UNMONITORED for confidence purposes
-# — the rules will flag the HR as low-confidence rather than assume.
+# — the rules grade the HR by the recording device's own sensor class and
+# intensity rather than assuming a monitor was worn.
 # ---------------------------------------------------------------------------
 external_hr_monitors:
   owned:
@@ -68,7 +72,7 @@ external_hr_monitors:
 
   worn_for:
     # Declared by the user 2026-08-30. No API reports the HR sensor, so this
-    # is the source of truth for which sessions have strap-grade HR.
+    # declaration is the only record of which sessions have strap-grade HR.
     ecg_chest_strap:
       - strengthTraining
       - strength_training

@@ -151,7 +151,8 @@ merged.
 
 ## Checking
 
-[`fixtures/check_fixtures.py`](../fixtures/check_fixtures.py) validates the
+[`fixtures/check_fixtures.py`](https://github.com/drleahzou/MetricBraid/blob/main/fixtures/check_fixtures.py) in the
+MetricBraid repo validates the
 examples here and the routing fixtures against the enums in the schema, so the
 vocabulary cannot drift between the spec, the rules and the test cases:
 

@@ -10,7 +10,7 @@ HR sensor: `wrist_optical`.
 
 ## Evidence
 
-| Date | Source | Model tested | Confidence | Notes |
+| Date | Source | Model tested | Measurement confidence | Notes |
 |---|---|---|---|---|
 | 2026-07-14 | Etiwy et al. 2019 ([DOI](https://doi.org/10.21037/cdt.2019.04.08)) | **Forerunner 235** | High | Wrist optical **rc=0.52** vs ECG during exercise — the lowest of the five devices tested (Apple 0.80, Fitbit 0.78, TomTom 0.76). Chest strap 0.99. |
 | 2026-07-14 | Pasadyn/Gillinov et al. 2019 ([DOI](https://doi.org/10.21037/cdt.2019.06.05)) | **Vivosmart HR** | High | Accurate at rest; accuracy falls as treadmill intensity rises. |
