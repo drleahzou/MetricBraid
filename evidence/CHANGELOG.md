@@ -53,6 +53,18 @@ or model change could otherwise loosen silently, including the four cases where
 the system is supposed to decline. `check_fixtures.py` enforces that they, the
 spec examples and the schema share one vocabulary.
 
+**The plugin's copy of this tree became generated rather than
+hand-maintained.** A self-contained plugin needs its own dossiers, so they
+exist twice; maintaining both by hand meant a dossier could disagree with
+itself depending on which copy you read, and the skill had already drifted out
+of sync with `devices.yaml` on device capabilities before this was noticed.
+`scripts/sync_plugin.py` now generates every plugin copy from the canonical
+file, declares the link rewrites each destination needs, and fails when a
+rewrite stops matching its source — which caught three stale rewrites and a
+broken link the moment it was first run. Two duplicate copies with no reader
+at all (a second OAuth helper, a second copy of the routed-observation spec
+inside the same plugin) were deleted outright.
+
 **One substantive rule addition**, which is why this is not purely
 terminological: deduplication now states that **overlap is necessary but not
 sufficient**. Two genuinely separate bouts can fall inside the ±12 min buffer,

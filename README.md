@@ -128,9 +128,32 @@ general baselines and no more.
   presets for common trackers.
 - **[`SETUP.md`](SETUP.md)** — authentication for the two bundled
   integrations, including the Oura OAuth2 migration.
-- **[`scripts/oura_auth.py`](scripts/oura_auth.py)** — dependency-free Oura OAuth2 helper.
+- **[`scripts/`](scripts/)** — [`oura_auth.py`](scripts/oura_auth.py), a
+  dependency-free Oura OAuth2 helper; [`evidence_watch.py`](scripts/evidence_watch.py),
+  the weekly watchlist check; and [`sync_plugin.py`](scripts/sync_plugin.py),
+  which generates the plugin's copies of the canonical files.
 - **[`plugins/metricbraid/`](plugins/metricbraid/)** — the whole thing packaged as a Claude Code
   plugin.
+
+### One canonical copy of everything
+
+A Claude Code plugin has to be self-contained — the skill reads its own
+`references/`, and `/metricbraid-init` copies its own `templates/`. So the
+evidence dossiers and the routed-observation contract necessarily exist twice
+in this repo. **They are not maintained twice.** The repo-root copies are
+canonical; everything under `plugins/metricbraid/` is generated from them by
+[`scripts/sync_plugin.py`](scripts/sync_plugin.py), which declares the link
+rewrites each destination needs and fails loudly when a rewrite no longer
+matches its source.
+
+```bash
+python3 scripts/sync_plugin.py          # regenerate after editing a canonical file
+python3 scripts/sync_plugin.py --check  # what CI runs
+```
+
+Edit `evidence/`, `spec/`, `CLAUDE.md` or `devices.yaml` and run the script.
+Editing a file under `plugins/` directly will be overwritten, and CI will say
+so first.
 
 ## Install
 

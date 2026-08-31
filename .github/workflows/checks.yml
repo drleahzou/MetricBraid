@@ -1,0 +1,50 @@
+name: Checks
+
+# Structural checks only — nothing here evaluates routing behaviour, which
+# lives in prose and is exercised by fixtures/README.md as an eval.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Plugin mirror is generated, not hand-edited
+        run: python3 scripts/sync_plugin.py --check
+
+      - name: Fixtures and spec examples share one vocabulary
+        run: python3 fixtures/check_fixtures.py
+
+      - name: Internal links resolve
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, subprocess, sys
+          root = pathlib.Path('.').resolve()
+          bad = []
+          for f in subprocess.run(['git', 'ls-files'],
+                                  capture_output=True, text=True).stdout.split():
+              p = root / f
+              if p.suffix != '.md' or not p.exists():
+                  continue
+              for m in re.finditer(r'\[[^\]]*\]\(([^)]+)\)', p.read_text()):
+                  t = m.group(1)
+                  if t.startswith(('http', '#', 'mailto')):
+                      continue
+                  if not (p.parent / t.split('#')[0]).resolve().exists():
+                      bad.append(f"{f} -> {t}")
+          print('\n'.join(bad) if bad else 'all internal markdown links resolve')
+          sys.exit(1 if bad else 0)
+          PY

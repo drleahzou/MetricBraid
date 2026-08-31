@@ -18,7 +18,7 @@ changing anything.
 
 | Layer | File(s) | Defines | Changes when |
 |---|---|---|---|
-| **Framework** | this file, [`spec/`](spec/) | Capability classes, routing rules, channel arbitration, deduplication, the two confidence axes, provenance requirements, evidence discipline, analytical standards | The model itself improves |
+| **Framework** | this file, and the routed-observation contract ([`spec/`](https://github.com/drleahzou/MetricBraid/blob/main/spec/)) | Capability classes, routing rules, channel arbitration, deduplication, the two confidence axes, provenance requirements, evidence discipline, analytical standards | The model itself improves |
 | **User configuration** | [`devices.yaml`](devices.yaml), `.mcp.json`, credentials | Which devices exist, which capability classes each declares, where its HR sensor sits, tiebreak preferences, external monitors, known provider defects, integrations | The user's hardware or setup changes |
 | **Evidence** | the plugin skill's `references/` ([online](https://github.com/drleahzou/MetricBraid/blob/main/evidence/)) | Device-agnostic baselines, device-specific claims, rule-level reasoning, open gaps, confidence limits | New validation is published or a device generation ships |
 
@@ -439,8 +439,9 @@ Every number you route is represented internally as a **routed observation**:
 one metric, one channel, one time window. This is a working contract, not a
 storage format — build them while analysing, keep them in context, surface
 what is material. The full schema and worked examples are in
-[`spec/routed-observation.md`](spec/routed-observation.md) and
-[`spec/routed-observation.schema.json`](spec/routed-observation.schema.json).
+the plugin skill's `references/routed-observation.md`
+([online](https://github.com/drleahzou/MetricBraid/blob/main/spec/routed-observation.md), with the
+[JSON Schema](https://github.com/drleahzou/MetricBraid/blob/main/spec/routed-observation.schema.json)).
 
 | Field | Holds |
 |---|---|
@@ -471,7 +472,7 @@ heart_rate   avg_hr 152 bpm      routed  ← same record, sensor ecg_chest_strap
 ```
 
 Same event, same window, two sources of authority, no averaging, and the
-absorbed record still visible. See `spec/examples/` for the full JSON, plus a
+absorbed record still visible. See [`spec/examples/`](https://github.com/drleahzou/MetricBraid/blob/main/spec/examples/) for the full JSON, plus a
 `user_preference` tiebreak case, an `unresolved` conflict, and a `withheld`
 observation.
 

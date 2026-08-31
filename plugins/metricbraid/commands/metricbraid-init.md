@@ -1,5 +1,5 @@
 ---
-description: Set up MetricBraid sensor-evidence routing in the current project — installs the CLAUDE.md rules, the routed-observation spec, the device registry and the food-log template, and checks that the bundled MCP servers are connected.
+description: Set up MetricBraid sensor-evidence routing in the current project — installs the CLAUDE.md rules, the device registry and the food-log template, and checks that the bundled MCP servers are connected.
 ---
 
 Set up MetricBraid in the current project directory.
@@ -7,9 +7,9 @@ Set up MetricBraid in the current project directory.
 MetricBraid has three layers, and this command installs the first two. Keep
 them distinct when explaining anything to the user:
 
-- **Framework** — `CLAUDE.md` (routing rules) and `spec/` (the
-  routed-observation contract). Hardware-agnostic; the user should not need
-  to edit these.
+- **Framework** — `CLAUDE.md` (the routing rules). Hardware-agnostic; the
+  user should not need to edit it. The routed-observation contract it refers
+  to ships with this plugin as the skill's `references/routed-observation.md`.
 - **User configuration** — `devices.yaml` and the MCP servers. Where hardware
   is named. **The only file most people ever edit.**
 - **Evidence** — ships inside the skill as `references/`. Read-only here.
@@ -24,15 +24,7 @@ them distinct when explaining anything to the user:
      template to `CLAUDE.metricbraid.md` for them to merge by hand. Ask
      which they want before writing.
 
-2. **Install the routed-observation spec.** Copy
-   `${CLAUDE_PLUGIN_ROOT}/templates/spec/` to `spec/` in the project root if
-   it isn't already there. This is the canonical form every routed metric
-   takes — source, sensor, rule, routing basis, measurement confidence, what
-   was merged, what must be disclosed — plus its JSON Schema and three worked
-   examples. `CLAUDE.md` links to it, so skipping this leaves those links
-   dangling.
-
-3. **Install the device registry.** Copy
+2. **Install the device registry.** Copy
    `${CLAUDE_PLUGIN_ROOT}/templates/devices.yaml` into the project root if it
    isn't already there, then **ask the user what they actually wear** and fill
    it in — devices, capability classes, HR sensor placement, any external HR
@@ -50,13 +42,13 @@ them distinct when explaining anything to the user:
      improves measurement confidence by nothing. Leaving one unset is a valid
      choice: the conflict is then reported as unresolved, with both values.
 
-4. **Install the nutrition template.** Copy
+3. **Install the nutrition template.** Copy
    `${CLAUDE_PLUGIN_ROOT}/templates/food-log.example.csv` into the project
    root if it isn't already there. Tell the user to `cp` it to
    `food-log.csv` and add that filename to their `.gitignore` — it will
    contain personal data.
 
-5. **Verify the bundled integrations.** The routing model is
+4. **Verify the bundled integrations.** The routing model is
    hardware-agnostic, but the shipped plumbing covers two providers. Check
    whether the `garmin` and `oura` MCP servers are connected in this session.
    - Report the status of each plainly. Do not assume they work.
@@ -75,7 +67,7 @@ them distinct when explaining anything to the user:
      or pasted exports. Declare it in `devices.yaml` and the rules apply
      unchanged.
 
-6. **Confirm what was installed**, and state two things the user should
+5. **Confirm what was installed**, and state two things the user should
    expect to hear from the assistant afterwards:
    - **Rule A (passive signals) is provisional by design.** Its *routing* is
      reasoned from device design rather than measured, and the assistant is
