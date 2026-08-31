@@ -1,7 +1,7 @@
 {
   "name": "metricbraid",
   "description": "A provenance and conflict-resolution layer for AI analysis of overlapping personal sensor data. Installs a capability-class routing model that decides which source governs which channel of an event, ±12-minute deduplication that absorbs rather than drops competing records, a canonical routed-observation contract carrying source, sensor, rule and caveats, and a status model that keeps routing basis separate from measurement confidence so a deterministic routing decision never reads as a validated measurement. Hardware is declared in devices.yaml; Garmin and Oura MCP servers are bundled.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "drleahzou",
     "url": "https://github.com/drleahzou"

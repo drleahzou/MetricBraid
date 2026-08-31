@@ -291,6 +291,47 @@ See [`SETUP.md`](SETUP.md).
 
 > **Oura note:** Personal Access Tokens were deprecated in December 2025. Newly created PATs return `401`; OAuth2 is the supported authentication path.
 
+## Updating the plugin
+
+Claude Code decides whether an update is available by comparing version
+numbers, and it reads the available version from a locally cached copy of the
+marketplace. Refresh that cache before asking for the update, or you will be
+told you are current when you are not:
+
+```text
+/plugin marketplace update metricbraid
+```
+
+Then update:
+
+```text
+/plugin update metricbraid@metricbraid
+```
+
+If you are running Claude Code somewhere `/plugin` is unavailable — it opens an
+interactive terminal panel, so it does not exist in every environment — the
+same operations are available from the command line:
+
+```bash
+claude plugin marketplace update metricbraid
+```
+
+```bash
+claude plugin update metricbraid@metricbraid
+```
+
+Restart Claude Code afterwards. The skill is read at session start, so a
+running session keeps using the copy it loaded.
+
+> **If you installed before v0.2.0:** releases up to `0.1.0` shared a single
+> version number across several rounds of changes, so an update check reports
+> no update regardless of the cache. Reinstall once to move to the current
+> release, after which normal updates work:
+>
+> ```bash
+> claude plugin uninstall metricbraid@metricbraid && claude plugin install metricbraid@metricbraid
+> ```
+
 ---
 
 ## Template repository
