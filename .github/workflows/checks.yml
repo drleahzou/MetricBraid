@@ -28,6 +28,9 @@ jobs:
       - name: Fixtures and spec examples share one vocabulary
         run: python3 fixtures/check_fixtures.py
 
+      - name: The fixture grader still defends the fixtures
+        run: python3 fixtures/run_fixtures.py --self-test
+
       - name: Internal links resolve
         run: |
           python3 - <<'PY'
