@@ -1,0 +1,519 @@
+{
+  "$comment": "Adversarial routing fixtures for MetricBraid. Each case states a configuration, the candidate records, and the expected routed outcome. Vocabulary is validated against ../spec/routed-observation.schema.json by check_fixtures.py — the enums cannot drift apart.",
+  "vocabulary_source": "../spec/routed-observation.schema.json",
+  "how_to_run": "See README.md. These are behavioural expectations for an assistant operating under CLAUDE.md, not unit tests of code.",
+  "cases": [
+    {
+      "id": "recorded-overlaps-autodetected",
+      "title": "Recorded run overlaps an auto-detected run",
+      "why_it_matters": "The base double-counting failure. Two records, one run. Getting this wrong inflates every daily total downstream.",
+      "config": {
+        "devices": [
+          { "id": "garmin", "capabilities": ["recorded_workout", "auto_detected", "passive_247"], "hr_sensor": "wrist_optical" },
+          { "id": "oura", "capabilities": ["passive_247", "auto_detected", "recorded_workout"], "hr_sensor": "ring_ppg" }
+        ],
+        "external_hr_monitors": { "worn_for": { "ecg_chest_strap": ["running"] } },
+        "tiebreaks": { "recorded_workout": "garmin", "passive_247": "oura" }
+      },
+      "given": [
+        "garmin: recorded `running` 07:02–07:48, 8412 m, avg HR 152, chest strap declared worn for running",
+        "oura: auto-detected `running` bout 07:14–07:46, 6900 m estimated, 61 kcal"
+      ],
+      "expect": {
+        "deduplication": "collapse",
+        "dedup_reason": "Windows overlap inside the ±12 min buffer and the activity type matches. One real-world event.",
+        "observations": [
+          {
+            "metric": "distance_m",
+            "channel": "event",
+            "routing_status": "routed",
+            "selected_source": { "device": "garmin", "capability_class": "recorded_workout", "sensor_class": "not_applicable" },
+            "routing": { "rule": "B", "basis": "structural", "decided_by": "sole_recorder — only one overlapping record carries GPS at all" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": ["oura"],
+            "must_disclose": ["An overlapping auto-detected bout was absorbed and is not counted separately in the day's totals."]
+          },
+          {
+            "metric": "avg_heart_rate",
+            "channel": "heart_rate",
+            "routing_status": "routed",
+            "selected_source": { "device": "garmin", "capability_class": "recorded_workout", "sensor_class": "ecg_chest_strap" },
+            "routing": { "rule": "B", "basis": "evidence_backed", "decided_by": "sensor_class_hierarchy — external monitor declared for this activity type" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": [],
+            "must_disclose": []
+          }
+        ],
+        "must_not": [
+          "Report two runs, or add the two distances together",
+          "Add the auto-detected bout's calories to the day's total",
+          "Average 8412 m and 6900 m"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "external-strap-beats-recorder-wrist",
+      "title": "The recorder has only wrist HR; an ECG chest strap recorded the same session elsewhere",
+      "why_it_matters": "The channel split is the whole point. The event winner must not automatically take the HR channel, and the strap must not drag GPS with it.",
+      "config": {
+        "devices": [
+          { "id": "watch", "capabilities": ["recorded_workout", "auto_detected"], "hr_sensor": "wrist_optical" },
+          { "id": "ring", "capabilities": ["passive_247", "auto_detected", "recorded_workout"], "hr_sensor": "ring_ppg" }
+        ],
+        "external_hr_monitors": {
+          "owned": [{ "class": "ecg_chest_strap", "pairs_with": ["watch", "ring"] }],
+          "worn_for": { "ecg_chest_strap": ["cycling"] }
+        },
+        "tiebreaks": { "recorded_workout": "watch" }
+      },
+      "given": [
+        "watch: recorded `cycling` 18:00–19:05 with GPS, power and cadence. Its own HR came from the wrist sensor — no strap was paired to it.",
+        "ring: recorded the same session 18:01–19:04 in its app with a chest strap paired. No GPS, no power."
+      ],
+      "expect": {
+        "deduplication": "collapse",
+        "dedup_reason": "Two recorded sessions for one event. Merge by channel, do not pick one record.",
+        "observations": [
+          {
+            "metric": "avg_power_w",
+            "channel": "event",
+            "routing_status": "routed",
+            "selected_source": { "device": "watch", "capability_class": "recorded_workout", "sensor_class": "not_applicable" },
+            "routing": { "rule": "B", "basis": "structural", "decided_by": "sole_recorder — only one record carries power and GPS" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": ["ring"],
+            "must_disclose": ["The other device's recording of the same session was merged by channel; it owns the heart rate for this session."]
+          },
+          {
+            "metric": "avg_heart_rate",
+            "channel": "heart_rate",
+            "routing_status": "routed",
+            "selected_source": { "device": "ring", "capability_class": "recorded_workout", "sensor_class": "ecg_chest_strap" },
+            "routing": { "rule": "B", "basis": "evidence_backed", "decided_by": "sensor_class_hierarchy — external_hr_monitor outranks wrist_optical regardless of which app recorded" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": ["watch"],
+            "must_disclose": ["Heart rate came from the chest strap on the other device's recording, while pace and power came from the watch."]
+          }
+        ],
+        "must_not": [
+          "Give the HR channel to the watch because it won the event channel",
+          "Give the event channel to the ring because it had the better HR sensor",
+          "Use the ring's own ring_ppg sensor — the strap is what was worn",
+          "Average the two HR series"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "two-passive-devices-disagree-no-tiebreak",
+      "title": "Two passive_247 devices disagree materially and no tiebreak is set",
+      "why_it_matters": "The framework must be able to decline. Picking silently, or averaging, is the failure this repo exists to prevent.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247", "auto_detected"], "hr_sensor": "ring_ppg" },
+          { "id": "band", "capabilities": ["passive_247", "auto_detected"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": { "passive_247": null }
+      },
+      "given": [
+        "ring: nightly RMSSD 38 ms",
+        "band: nightly RMSSD 61 ms",
+        "Neither device has a dossier in evidence/devices/."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "dedup_reason": "Not duplicate records of one event — two devices measuring the same night. Nothing to collapse.",
+        "observations": [
+          {
+            "metric": "hrv_rmssd_night",
+            "channel": "passive",
+            "routing_status": "unresolved",
+            "selected_source": null,
+            "routing": { "rule": "A", "basis": "unresolved", "decided_by": "no_rule_applies — both declare passive_247 and tiebreaks.passive_247 is unset" },
+            "measurement": { "confidence": "moderate" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "No rule or tiebreak resolves this; both values are reported with their sources.",
+              "Setting tiebreaks.passive_247 would decide which to report, and would be a preference rather than a finding.",
+              "Each value is usable against its own baseline; the two are not comparable to each other."
+            ]
+          }
+        ],
+        "competing_preserved": ["ring", "band"],
+        "must_not": [
+          "Report 49.5 ms, or any other average",
+          "Pick one device without saying that nothing decided it",
+          "Claim the higher value is the better recovery reading"
+        ],
+        "abstains": true
+      }
+    },
+    {
+      "id": "sleep-duration-disagreement-with-tiebreak",
+      "title": "Two devices report different sleep durations, tiebreak set",
+      "why_it_matters": "A resolved conflict still has to show the spread. Routing resolves what to report, not what is true.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247"], "hr_sensor": "ring_ppg" },
+          { "id": "watch", "capabilities": ["passive_247", "recorded_workout"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": { "passive_247": "ring" }
+      },
+      "given": [
+        "ring: total sleep time 421 min",
+        "watch: total sleep time 447 min",
+        "Same night, 26 min apart."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "observations": [
+          {
+            "metric": "total_sleep_time",
+            "channel": "passive",
+            "routing_status": "routed",
+            "selected_source": { "device": "ring", "capability_class": "passive_247", "sensor_class": "ring_ppg" },
+            "routing": { "rule": "A", "basis": "user_preference", "decided_by": "tiebreaks.passive_247" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "A tiebreak decided which device to report; it is a preference and does not make that device more accurate.",
+              "The other device reported 26 min more. Consumer wearables run ~17 min short against PSG on average, so a spread this size is unsurprising rather than a fault in either device.",
+              "Rule A's routing is provisional: no study compares a 24/7 passive device against a training watch for passive signals."
+            ]
+          }
+        ],
+        "competing_preserved": ["watch"],
+        "must_not": [
+          "Report 434 min",
+          "Report 421 min as the night's sleep with no mention of the other reading",
+          "Present either figure as accurate to the minute"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "single-device-setup",
+      "title": "One device provides every capability class",
+      "why_it_matters": "A valid configuration that must not read as the most confident one. Nothing cross-validates.",
+      "config": {
+        "devices": [
+          { "id": "watch", "capabilities": ["passive_247", "recorded_workout", "auto_detected"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": {}
+      },
+      "given": [
+        "watch: recorded `running` 07:00–07:40, nightly HRV, auto-detected afternoon walk",
+        "No other source is configured."
+      ],
+      "expect": {
+        "deduplication": "within_source_only",
+        "dedup_reason": "Cross-source dedup is a no-op with one source, but the within-source duplicate check still runs.",
+        "observations": [
+          {
+            "metric": "hrv_rmssd_night",
+            "channel": "passive",
+            "routing_status": "routed",
+            "selected_source": { "device": "watch", "capability_class": "passive_247", "sensor_class": "wrist_optical" },
+            "routing": { "rule": "A", "basis": "provisional", "decided_by": "sole_declarer of passive_247" },
+            "measurement": { "confidence": "moderate" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "Only one source is configured, so nothing cross-validates this number and an anomaly has nothing to be caught against.",
+              "Rule A's routing is provisional.",
+              "HRV is usable against this device's own baseline, not as an absolute value."
+            ]
+          }
+        ],
+        "must_not": [
+          "Describe the reading as more reliable because nothing contradicted it",
+          "Skip the within-source duplicate check"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "unclassifiable-new-metric",
+      "title": "A new metric appears that fits no capability class",
+      "why_it_matters": "The framework must widen deliberately, not by silent analogy. Guessing a rule is how a model quietly acquires new authority.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247", "auto_detected"], "hr_sensor": "ring_ppg" }
+        ],
+        "tiebreaks": {}
+      },
+      "given": [
+        "The provider ships a new field: `metabolic_load_index`, described in release notes as combining logged meals, activity and overnight temperature.",
+        "It is neither purely passive, nor recorded, nor auto-detected, and it partly derives from self-reported intake."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "observations": [
+          {
+            "metric": "metabolic_load_index",
+            "channel": "passive",
+            "routing_status": "unresolved",
+            "selected_source": null,
+            "routing": { "rule": "A", "basis": "unresolved", "decided_by": "no_rule_applies — the metric spans a sensed class and self-reported intake" },
+            "measurement": { "confidence": "unvalidated" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "This metric does not fit A, B, C or D cleanly; it is reported unrouted with its source named.",
+              "It partly derives from self-reported intake, which sits outside the capability model under Rule D.",
+              "Which rule it should follow is a question for the user, after which CLAUDE.md should be updated."
+            ]
+          }
+        ],
+        "must_not": [
+          "Silently file it under Rule A because it arrived from a passive device",
+          "Include it in any total or trend before it is classified",
+          "Treat a composite score as a raw measurement"
+        ],
+        "abstains": true
+      }
+    },
+    {
+      "id": "integration-unavailable",
+      "title": "A configured integration is not connected this session",
+      "why_it_matters": "A missing source must not quietly become an uncontested winner, and a partial day must not be reported as a whole one.",
+      "config": {
+        "devices": [
+          { "id": "garmin", "capabilities": ["recorded_workout", "auto_detected", "passive_247"], "hr_sensor": "wrist_optical" },
+          { "id": "oura", "capabilities": ["passive_247", "auto_detected", "recorded_workout"], "hr_sensor": "ring_ppg" }
+        ],
+        "tiebreaks": { "passive_247": "oura", "recorded_workout": "garmin" }
+      },
+      "given": [
+        "The garmin MCP server failed to start this session. The oura server is connected.",
+        "The user asks for yesterday's total active time."
+      ],
+      "expect": {
+        "deduplication": "within_source_only",
+        "dedup_reason": "Only one source responded, so there is nothing to reconcile against — which is itself the finding.",
+        "observations": [
+          {
+            "metric": "active_time_total",
+            "channel": "incidental",
+            "routing_status": "withheld",
+            "selected_source": null,
+            "routing": { "rule": "C", "basis": "unresolved", "decided_by": "configured source unavailable — recorded sessions cannot be checked for" },
+            "measurement": { "confidence": "unusable" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "One configured source did not connect, so this is said before any analysis, not after it.",
+              "A total cannot be given: recorded sessions live on the missing source, and Rule C bouts can only be attributed once it is known that no recorded session overlaps them.",
+              "The available source's own bouts can be listed individually, labelled as one source of two."
+            ]
+          }
+        ],
+        "must_not": [
+          "Report a daily total as if it were complete",
+          "Let the surviving source win a comparison by default",
+          "Analyse first and mention the missing server afterwards"
+        ],
+        "abstains": true
+      }
+    },
+    {
+      "id": "device-without-dossier",
+      "title": "A declared device has no device-specific evidence dossier",
+      "why_it_matters": "The most tempting error in the repo: lending one device's measured numbers to another because both are wearables.",
+      "config": {
+        "devices": [
+          { "id": "band", "capabilities": ["passive_247", "auto_detected", "recorded_workout"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": {}
+      },
+      "given": [
+        "The user asks how far off the band's nightly HRV figure is likely to be.",
+        "evidence/devices/ contains no dossier for this device."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "observations": [
+          {
+            "metric": "hrv_rmssd_night",
+            "channel": "passive",
+            "routing_status": "routed",
+            "selected_source": { "device": "band", "capability_class": "passive_247", "sensor_class": "wrist_optical" },
+            "routing": { "rule": "A", "basis": "provisional", "decided_by": "sole_declarer of passive_247" },
+            "measurement": { "confidence": "unvalidated" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "There is no dossier for this device, so no numeric offset can be quoted for it.",
+              "It inherits only the device-agnostic baselines in evidence/general/, which do not include an HRV offset.",
+              "Routing is unaffected — capability classes are structural — but accuracy claims are not available."
+            ]
+          }
+        ],
+        "must_not": [
+          "Quote another device's ~15 ms RMSSD underestimate for this one",
+          "Say the number is fine because no evidence contradicts it",
+          "Refuse to route the metric at all"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "same-workout-shifted-timestamps",
+      "title": "One source emits the same workout twice with shifted timestamps",
+      "why_it_matters": "Intra-source duplicates were observed in live data. Near-identical values are the tell, not a counter-argument.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247", "auto_detected", "recorded_workout"], "hr_sensor": "ring_ppg" }
+        ],
+        "tiebreaks": {}
+      },
+      "given": [
+        "ring: `walking` 13:11–13:38, 56 kcal",
+        "ring: `walking` 13:16–13:43, 55.746 kcal",
+        "Same source, same activity type, same duration, start times 5 min apart."
+      ],
+      "expect": {
+        "deduplication": "collapse",
+        "dedup_reason": "Same source, overlapping inside the buffer, identical type and duration, near-identical magnitude. One bout emitted twice.",
+        "observations": [
+          {
+            "metric": "active_time_min",
+            "channel": "incidental",
+            "routing_status": "routed",
+            "selected_source": { "device": "ring", "capability_class": "auto_detected", "sensor_class": "not_applicable" },
+            "routing": { "rule": "C", "basis": "structural", "decided_by": "sole_detector after intra-source duplicate collapse" },
+            "measurement": { "confidence": "moderate" },
+            "merged_from_devices": ["ring"],
+            "must_disclose": ["A duplicate record of the same bout from the same source was collapsed; it is counted once."]
+          }
+        ],
+        "must_not": [
+          "Count 54 minutes of walking",
+          "Treat 56 vs 55.746 kcal as evidence of two separate bouts",
+          "Run cross-source dedup before the within-source check"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "close-but-separate-workouts",
+      "title": "Two overlapping records that are genuinely different events",
+      "why_it_matters": "The mirror of double-counting. Over-merging destroys a real session and is much harder to notice afterwards.",
+      "config": {
+        "devices": [
+          { "id": "watch", "capabilities": ["recorded_workout", "auto_detected"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": {}
+      },
+      "given": [
+        "watch: recorded `walking` 14:00–14:20, 1.6 km",
+        "watch: recorded `running` 14:15–15:00, 7.9 km",
+        "Windows overlap by 5 min, inside the ±12 min buffer."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "dedup_reason": "Overlap is necessary but not sufficient. Different activity types and very different durations — a warm-up walk and the run after it, not one event recorded twice.",
+        "observations": [
+          {
+            "metric": "distance_m",
+            "channel": "event",
+            "routing_status": "routed",
+            "selected_source": { "device": "watch", "capability_class": "recorded_workout", "sensor_class": "not_applicable" },
+            "routing": { "rule": "B", "basis": "structural", "decided_by": "sole_recorder — two separate sessions, each kept" },
+            "measurement": { "confidence": "high" },
+            "merged_from_devices": [],
+            "must_disclose": ["The two sessions overlap by 5 minutes but were kept separate; the overlap is a recording boundary, not a duplicate."]
+          }
+        ],
+        "must_not": [
+          "Collapse the walk into the run because the windows overlap",
+          "Report a single 60-minute session",
+          "Drop the shorter record silently"
+        ],
+        "abstains": false
+      }
+    },
+    {
+      "id": "user-asks-for-an-average",
+      "title": "The user asks to just average the two sensors",
+      "why_it_matters": "The rule has to survive being asked nicely to break it, without becoming obstructive about the user's own data.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247"], "hr_sensor": "ring_ppg" },
+          { "id": "watch", "capabilities": ["passive_247", "recorded_workout"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": { "passive_247": null }
+      },
+      "given": [
+        "ring: resting HR 52 bpm. watch: resting HR 58 bpm.",
+        "User: \"just average the two sensors and give me one number.\""
+      ],
+      "expect": {
+        "deduplication": "none",
+        "observations": [
+          {
+            "metric": "resting_heart_rate",
+            "channel": "passive",
+            "routing_status": "unresolved",
+            "selected_source": null,
+            "routing": { "rule": "A", "basis": "unresolved", "decided_by": "no_rule_applies — tiebreaks.passive_247 unset" },
+            "measurement": { "confidence": "moderate" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "55 bpm is not a measurement — neither device recorded it, and it belongs to neither error profile.",
+              "Both values are reported with their sources, along with the 6 bpm spread.",
+              "Setting a tiebreak, or comparing each device against its own baseline, gives the single number the user actually wants."
+            ]
+          }
+        ],
+        "competing_preserved": ["ring", "watch"],
+        "must_not": [
+          "Make the mean the routed value",
+          "Feed a mean into any downstream trend or conclusion",
+          "Lecture, or refuse to engage with the underlying question"
+        ],
+        "on_reaffirmation": "If the user asks again after the explanation, give the mean, label it as user-requested and not a measurement, keep both source values beside it, and still do not route it or reuse it downstream.",
+        "abstains": false
+      }
+    },
+    {
+      "id": "tiebreak-does-not-raise-confidence",
+      "title": "A tiebreak resolves routing without improving measurement confidence",
+      "why_it_matters": "The precise conflation this refactor exists to prevent: a deterministic routing decision reading as a validated measurement.",
+      "config": {
+        "devices": [
+          { "id": "ring", "capabilities": ["passive_247"], "hr_sensor": "ring_ppg" },
+          { "id": "band", "capabilities": ["passive_247"], "hr_sensor": "wrist_optical" }
+        ],
+        "tiebreaks": { "passive_247": "ring" }
+      },
+      "given": [
+        "Both devices report deep-sleep minutes: ring 74 min, band 51 min.",
+        "The user asks whether their deep sleep is improving."
+      ],
+      "expect": {
+        "deduplication": "none",
+        "observations": [
+          {
+            "metric": "deep_sleep_min",
+            "channel": "passive",
+            "routing_status": "routed",
+            "selected_source": { "device": "ring", "capability_class": "passive_247", "sensor_class": "ring_ppg" },
+            "routing": { "rule": "A", "basis": "user_preference", "decided_by": "tiebreaks.passive_247" },
+            "measurement": { "confidence": "low" },
+            "merged_from_devices": [],
+            "must_disclose": [
+              "A tiebreak decided which device is reported. It resolved the routing and changed nothing about accuracy.",
+              "Sleep staging is misclassified 30–50% of the time against PSG across devices, in both directions. These minutes are a trend line, not a measurement.",
+              "The 23 min gap between the two devices is roughly the size of the documented staging error, which is what it looks like."
+            ]
+          }
+        ],
+        "competing_preserved": ["band"],
+        "must_not": [
+          "Present the routed figure as more accurate because the tiebreak was decisive",
+          "State deep-sleep minutes as fact",
+          "Answer the improvement question from absolute stage minutes rather than a trend against the user's own baseline"
+        ],
+        "abstains": false
+      }
+    }
+  ]
+}

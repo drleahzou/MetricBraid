@@ -149,7 +149,7 @@
     },
     "routing_status": {
       "enum": ["routed", "unresolved", "withheld"],
-      "description": "routed: a rule or tiebreak selected a source. unresolved: candidates disagree and nothing resolves them — report all of them. withheld: a source exists but must not be reported (known defect, undeclared sensor that changes the answer, missing data)."
+      "description": "routed: a rule or tiebreak selected a source. unresolved: nothing selected one — either candidates disagree with no rule or tiebreak to resolve them, in which case all of them are reported and preserved in `competing`, or no rule applies to the metric at all, which must be said in so many words. withheld: a source exists and returns something, but it must not be reported (known defect, undeclared sensor that would change the answer, missing data)."
     },
     "disposition": {
       "enum": ["absorbed", "duplicate_collapsed", "superseded_by_channel"],
