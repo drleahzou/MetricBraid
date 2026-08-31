@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "metricbraid",
-  "description": "Multi-device health data routing for Claude Code — reconcile Oura and Garmin without double-counting, averaging, or overclaiming.",
+  "description": "Evidence-aware routing for overlapping personal sensor data — decide which measurement an AI is allowed to believe, and record why.",
   "owner": {
     "name": "drleahzou",
     "url": "https://github.com/drleahzou"
@@ -9,10 +9,20 @@
   "plugins": [
     {
       "name": "metricbraid",
-      "description": "Wires up Garmin + Oura MCP servers and installs a capability-based routing model that decides which device wins for which metric, deduplicates overlapping events, and forces the assistant to carry provenance and flag provisional evidence.",
+      "description": "Wires up the bundled Garmin + Oura MCP servers and installs a hardware-agnostic routing model: capability classes decide which source governs which channel, overlapping records are deduplicated rather than summed or averaged, every number carries provenance in a canonical form, and routing confidence is kept separate from measurement confidence so provisional and unresolved reasoning has to be stated out loud.",
       "source": "./plugins/metricbraid",
       "category": "productivity",
-      "tags": ["health", "oura", "garmin", "wearables", "quantified-self", "mcp", "data-quality"]
+      "tags": [
+        "health",
+        "wearables",
+        "quantified-self",
+        "provenance",
+        "sensor-fusion",
+        "mcp",
+        "data-quality",
+        "oura",
+        "garmin"
+      ]
     }
   ]
 }

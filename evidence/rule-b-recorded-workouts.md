@@ -1,15 +1,26 @@
-# Rule B — deliberately recorded workouts → the recording device wins
+# Rule B — deliberately recorded sessions → routed per channel
 
-**Status: VERIFIED (2026-07-14) — non-provisional. Scope refined 2026-08-30
-into a two-channel split (event vs HR) after Oura shipped Live Activity
-Tracking with external strap support; see "Scope" below. One open gap
-remains for no-strap sessions.**
+Rule B routes **two channels separately**, and they do not share a status.
+Scope was refined on 2026-08-30 into the channel split after a ring-class
+device in the reference configuration shipped session recording with external
+strap support; see "Scope" below.
+
+| Channel | Routing basis | Measurement confidence |
+|---|---|---|
+| `event` — GPS, pace, distance, duration, power, cadence, load | **`structural`** — usually only one overlapping record carries these at all; when two do, a `tiebreaks.recorded_workout` entry resolves it and the basis becomes `user_preference` | `high` — nothing in the evidence challenges event data from a recorder |
+| `heart_rate` — in-workout HR | **`evidence_backed`** (2026-07-14, refined 2026-08-30) — the placement hierarchy is cited and multi-brand | **Depends on the sensor class present and on intensity**, not on the rule: `high` with an external monitor, `low` for wrist optical at effort, `unvalidated` for ring PPG, `unusable` in water |
+
+Both dimensions are defined in
+[`../spec/routed-observation.md`](../spec/routed-observation.md). One open gap
+remains, for sessions with no external monitor.
 
 ## Claim
 
-For a session actively recorded on a sports device — especially with a chest
-strap (in-workout HR, pace, power, cadence, training load) — the recording
-wins over any other device's estimate of the same event, always.
+For a session actively recorded on a device built for it, the recording is the
+governing source for the event — pace, distance, power, cadence, training load
+— over any other device's estimate of the same event. The heart rate of that
+same session is a separate claim, routed by sensor class rather than by which
+device recorded it.
 
 ## Evidence
 
@@ -19,8 +30,9 @@ Etiwy 2019, Pasadyn 2019, Hettiarachchi 2019 and Schweizer &
 Gilgen-Ammann 2025. It is device-agnostic: sensing method and anatomical
 placement determine accuracy, not brand.
 
-Device-specific figures (e.g. which Garmin model measured rc=0.52) are in
-[`devices/garmin.md`](devices/garmin.md).
+Device-specific figures (e.g. which watch model measured rc=0.52) are in
+[`devices/garmin.md`](devices/garmin.md), and do not transfer to another
+device.
 
 ## Why this is generation-robust
 

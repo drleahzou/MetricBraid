@@ -2,8 +2,8 @@
 
 Every routing rule in [`CLAUDE.md`](../CLAUDE.md) is backed by a dossier
 here. Each records the claim, the studies behind it, methodology and sample
-size, device generation, a confidence grade, and — critically — **what the
-evidence does not establish.**
+size, device generation, its grades on both confidence axes, and —
+critically — **what the evidence does not establish.**
 
 **Verdicts decay.** Firmware ships, generations change, a 2019 study
 describes hardware nobody wears now. These rules are only trustworthy if the
@@ -16,11 +16,41 @@ search summary alone.**
 
 ---
 
+## Two axes: routing basis, and measurement confidence
+
+A dossier answers two questions that are easy to run together and must not be.
+The full definitions live in
+[`../spec/routed-observation.md`](../spec/routed-observation.md); the short
+form:
+
+- **`routing_basis`** — how firmly we know *which source should own* the
+  signal. `structural` (forced by the shape of the data, no accuracy contest
+  needed) · `evidence_backed` (a cited dossier establishes the ordering) ·
+  `provisional` (reasoned but not measured, with a named open gap) ·
+  `user_preference` (a `devices.yaml` tiebreak decided it) · `unresolved`
+  (nothing decided it).
+- **`measurement_confidence`** — how much *the number itself* is worth.
+  `high` · `moderate` · `low` · `unvalidated` · `unusable`.
+
+They move independently, and the uncomfortable combinations are the common
+ones. Rule C attributes an incidental bout with total certainty and reports its
+calorie figure as unusable. Rule A's sleep-duration measurement is well
+validated while the claim about which device should own it is not. A tiebreak
+makes routing deterministic and teaches the measurement nothing.
+
+The previous single "verified / provisional" label could not express any of
+that, and read as though a routing decision had been scientifically validated.
+Nothing about which source wins has changed — only what the labels claim.
+
+**`unvalidated` is not `low`.** `low` means studied and found poor in this
+regime; you can say how wrong it is likely to be. `unvalidated` means nobody
+has looked, which licenses no claim in either direction.
+
 ## Two tiers, and why it matters
 
-This repo is not an Oura+Garmin tool. Evidence is split by **how far it
-generalizes**, so that adapting it to other hardware is a bounded job rather
-than a rewrite:
+The routing model is hardware-agnostic; the evidence cannot be. It is split by
+**how far it generalizes**, so that adapting this to other hardware is a
+bounded job rather than a rewrite:
 
 ### 🌍 `general/` — applies to any consumer wearable
 
@@ -49,12 +79,13 @@ specific and wins — *for that device only*.
 
 The reasoning connecting evidence to routing decisions:
 
-| Rule | Covers | Status | Dossier |
-|---|---|---|---|
-| **A** | Passive 24/7 signals — sleep, HRV, resting HR, temperature, stress | 🟡 **Provisional** | [rule-a-passive.md](rule-a-passive.md) |
-| **B** | Recorded workouts — event channel and HR channel, routed separately | 🟢 **Verified**, one open gap | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
-| **C** | Incidental auto-detected activity | 🟢 **Verified** for attribution | [rule-c-incidental.md](rule-c-incidental.md) |
-| **D** | Self-reported nutrition | ⚪ Outside the capability model | *(see `CLAUDE.md`)* |
+| Rule | Covers | Routing basis | Measurement confidence | Dossier |
+|---|---|---|---|---|
+| **A** | Passive 24/7 signals — sleep, HRV, resting HR, temperature, stress | 🟡 `provisional` — two named gaps | Duration `high` · staging `low` · HRV `moderate` as trend · temperature and stress `unvalidated` | [rule-a-passive.md](rule-a-passive.md) |
+| **B** `event` | GPS, pace, distance, power, cadence, load | 🟢 `structural` — usually the only record carrying them | `high` | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
+| **B** `heart_rate` | In-workout HR | 🟢 `evidence_backed` — cited placement hierarchy | Set by sensor class and intensity: `high` → `unusable` | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
+| **C** | Incidental auto-detected activity | 🟢 `structural` — sole detector, logically forced | Steps `moderate` (≈9% low) · energy `unusable` | [rule-c-incidental.md](rule-c-incidental.md) |
+| **D** | Self-reported intake | ⚪ Outside the capability model — declared, not sensed | Graded by capture method, not by a dossier | *(see `CLAUDE.md`)* |
 
 Rule D is self-reported rather than sensed, so no wearable validation bears
 on it. Its reliability grading is how the entry was captured (barcode >
@@ -114,20 +145,23 @@ meeting the source-quality bar closes it; it is never closed by preference.
   **not** promoted; the recorder's HR is kept with a mandatory
   low-confidence flag.
 - **No independent head-to-head for passive signals (Rule A).** The rule says
-  a 24/7 passive wearable beats a training watch for sleep and HRV. No study
-  compares them directly. This is **reasoned from device design, not
-  measured** — which is why Rule A stays provisional for *every* pairing, not
-  just this one.
-- **Oura Live Activity accuracy (Rule B).** Shipped 2026-06-04 with GPS/pace
+  a 24/7 passive wearable is the governing source over a training watch for
+  sleep and HRV. No study compares them directly. This is **reasoned from
+  device design, not measured** — which is why Rule A's routing basis stays
+  `provisional` for *every* configuration, not just the bundled one. It is
+  also why a `tiebreaks.passive_247` entry is `user_preference` rather than
+  a finding.
+- **Ring-class session recording accuracy (Rule B).** The reference
+  configuration's ring shipped session recording on 2026-06-04 with GPS/pace
   and external monitor support. No test meeting the source-quality bar yet;
   consumer tech-press comparisons do not qualify.
 
-## Why Rule A is still provisional
+## Why Rule A's routing basis is still provisional
 
-It is the rule most people would assume is safest, and it is the least
-settled. Beyond the head-to-head gap above, current-generation staging
+It is the rule most people would assume is safest, and its routing is the
+least settled. Beyond the head-to-head gap above, current-generation staging
 replication is thin, and **temperature deviation and all-day stress have no
-citation at all** — they ride the rule provisionally.
+citation at all** — they ride the rule as `unvalidated`.
 
 The assistant is required to say "this is provisional" out loud whenever an
 answer leans on Rule A. That obligation is the point: a rule honest about
@@ -150,9 +184,13 @@ In strict order:
 
 A new finding is **never** an automatic rule change.
 
-1. Something surfaces — a new study, new firmware, a device change (see
-   [watchlist.yaml](watchlist.yaml): weekly automated flags, quarterly manual
-   review).
+1. Something surfaces — a new study, new firmware, a device change.
+   [`.github/workflows/evidence-watch.yml`](../.github/workflows/evidence-watch.yml)
+   checks [watchlist.yaml](watchlist.yaml) every Monday and opens an issue
+   labelled `evidence-review` when it finds something. It reads PubMed and the
+   RSS feeds of the watched testers; **it never edits a rule, a dossier, or
+   this changelog.** Anything it cannot check automatically is reported as
+   skipped and falls to the quarterly manual review.
 2. It is raised and recorded — not silently applied.
 3. Only then is a rule edit proposed.
 4. The edit is logged in [CHANGELOG.md](CHANGELOG.md) — **including reviews
@@ -165,6 +203,11 @@ Adding a device dossier is the most useful contribution to this repo. Start
 from [devices/TEMPLATE.md](devices/TEMPLATE.md); it encodes the standards
 above, including the requirement to state what your evidence does *not*
 establish.
+
+**Edit the dossiers here, not the copies under `plugins/`.** The plugin ships
+its own copy of this tree so the skill is self-contained, but that copy is
+generated by `scripts/sync_plugin.py` and will overwrite hand edits. Run the
+script after changing anything in `evidence/`; CI checks it.
 
 If a citation here is misread, superseded, or a rule overreaches its
 evidence, please [open an issue](https://github.com/drleahzou/MetricBraid/issues)

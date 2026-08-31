@@ -1,0 +1,30 @@
+[
+  {
+    "metric": "avg_heart_rate",
+    "channel": "passive",
+    "value": null,
+    "unit": null,
+    "window": { "start": "2026-08-29T00:00:00-04:00", "end": "2026-08-29T23:59:59-04:00" },
+    "routing_status": "withheld",
+    "selected_source": null,
+    "routing": {
+      "rule": "A",
+      "basis": "structural",
+      "decided_by": "known_defect — devices.yaml known_defects: oura/get_heart_rate ignores the requested date range"
+    },
+    "measurement": {
+      "confidence": "unusable",
+      "evidence": [],
+      "caveats": [
+        "The tool returns plausible-looking data rather than an error: three different dates returned byte-identical summaries.",
+        "Withholding is the routed outcome here, not a tool failure to retry."
+      ]
+    },
+    "merged_from": [],
+    "competing": [],
+    "must_disclose": [
+      "Date-specific heart rate from this source is unavailable because of a recorded provider defect, not because the day has no data.",
+      "Any comparison that would have used it — this device against another for heart rate — cannot be made at all right now."
+    ]
+  }
+]

@@ -12,7 +12,7 @@ Declared capabilities: `passive_247`, `auto_detected`, `recorded_workout`
 
 All entries read against the primary source on the date shown.
 
-| Date | Source | Methodology | Generation | Confidence | Notes |
+| Date | Source | Methodology | Generation | Measurement confidence | Notes |
 |---|---|---|---|---|---|
 | 2026-07-14 | de Zambotti et al. 2019, *Behavioral Sleep Medicine* ([PMC6095823](https://pmc.ncbi.nlm.nih.gov/articles/PMC6095823/), DOI [10.1080/15402002.2017.1300587](https://doi.org/10.1080/15402002.2017.1300587)) | Epoch-by-epoch vs in-lab **PSG** (6-lead EEG, AASM), 1 night, n=41. Independent (SRI International); Oura supplied epoch data, no access to PSG staging. | **Gen1** | Medium (old generation) | Sleep sensitivity **95.5%**, wake specificity **48.1%**. Deep −20 min, REM +17 min. TST/WASO unbiased. |
 | 2026-07-14 | Ghorbani/Chee et al. 2021, *Nature and Science of Sleep* ([PMC7894804](https://pmc.ncbi.nlm.nih.gov/articles/PMC7894804/), DOI [10.2147/NSS.S286070](https://doi.org/10.2147/NSS.S286070)) | Multi-night (8 nights/participant, 3 time-in-bed conditions) vs PSG, n=53. Independent (Singapore NMRC); Oura supplied rings only. | **Gen2**, fw 1.36.3 | Medium-high | Sleep-wake accuracy/sensitivity/specificity **0.88–0.89**. Deep overestimated 32–47 min; light and REM underestimated. |

@@ -3,6 +3,116 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-08-31 — Status model split; provenance made structural
+
+A refactor of how the model *describes* itself. **No verdict changed and no
+routing outcome changed** — logged here because the discipline requires
+recording reviews that move nothing as well as ones that do, and because the
+labels every dossier carries are different afterwards.
+
+**The single status label was doing two jobs.** "Rule C — VERIFIED for
+attribution" read as though a step count had been validated, when what is
+certain is only that nothing else recorded the bout. Rules now carry two
+independent grades:
+
+- **`routing_basis`** — `structural` · `evidence_backed` · `provisional` ·
+  `user_preference` · `unresolved`. How firmly we know which source should
+  own the signal.
+- **`measurement_confidence`** — `high` · `moderate` · `low` ·
+  `unvalidated` · `unusable`. What the number itself is worth, graded per
+  signal rather than per rule.
+
+The mapping is deliberate rather than cosmetic. Rule A: routing
+`provisional` (unchanged in substance), measurements graded individually —
+duration `high`, staging `low`, HRV `moderate` as a trend, temperature and
+all-day stress `unvalidated`. Rule B: the two channels never shared a status
+in substance, so they no longer share one on paper — `event` is `structural`,
+`heart_rate` is `evidence_backed` with measurement set by sensor class and
+intensity. Rule C: `structural` attribution, `moderate` steps, `unusable`
+energy.
+
+**`unvalidated` is now distinguished from `low` throughout.** Ring PPG during
+exercise is unstudied; wrist optical at effort is studied and poor. Only the
+second lets you say how wrong a number is likely to be, which is the whole
+reason the ring is not promoted when no strap is worn. The old vocabulary had
+one word for both.
+
+**A tiebreak is graded `user_preference`, and that grade now travels with the
+number.** It resolves routing deterministically and improves measurement
+confidence by nothing. `devices.yaml` says so where the tiebreaks are set.
+
+**Provenance became a structure rather than a habit.** `spec/routed-observation.md`
+defines the canonical form a routed metric takes — metric, channel, window,
+selected source (device *and* sensor, separately), routing rule and basis,
+measurement confidence with its dossier paths, absorbed records, preserved
+competing values, and what must be disclosed. Three worked examples cover a
+channel split, an unresolved conflict and a withheld observation.
+
+**Twelve adversarial fixtures** in `fixtures/` pin the behaviour that a prompt
+or model change could otherwise loosen silently, including the four cases where
+the system is supposed to decline. `check_fixtures.py` enforces that they, the
+spec examples and the schema share one vocabulary.
+
+**The plugin's copy of this tree became generated rather than
+hand-maintained.** A self-contained plugin needs its own dossiers, so they
+exist twice; maintaining both by hand meant a dossier could disagree with
+itself depending on which copy you read, and the skill had already drifted out
+of sync with `devices.yaml` on device capabilities before this was noticed.
+`scripts/sync_plugin.py` now generates every plugin copy from the canonical
+file, declares the link rewrites each destination needs, and fails when a
+rewrite stops matching its source — which caught three stale rewrites and a
+broken link the moment it was first run. Two duplicate copies with no reader
+at all (a second OAuth helper, a second copy of the routed-observation spec
+inside the same plugin) were deleted outright.
+
+**One substantive rule addition**, which is why this is not purely
+terminological: deduplication now states that **overlap is necessary but not
+sufficient**. Two genuinely separate bouts can fall inside the ±12 min buffer,
+and over-merging destroys a real session in a way that is much harder to notice
+afterwards than double-counting. Previously the rules only guarded one
+direction.
+
+## 2026-08-30 — Evidence watch: made the automation claim true
+
+`watchlist.yaml` declared `automated: weekly` and referenced a "weekly job →
+`evidence-review` issues". **No such job existed** — there was no
+`.github/workflows` directory at all. In a repo whose premise is not making
+claims it cannot back, a documented process that does not run is the exact
+failure mode it exists to prevent. Fixed by building it rather than by
+softening the claim.
+
+**Added `scripts/evidence_watch.py` and a weekly workflow.** Checks PubMed via
+NCBI E-utilities and the RSS feeds of the watched testers, compares against
+`evidence/.watch-state.json` so a hit is reported once rather than every week,
+and opens an issue labelled `evidence-review`. Verified working before commit:
+the PubMed query returns 118 hits, all four sources resolve, and a second run
+correctly reports "No new material."
+
+**All four sources turned out to be automatable**, so the scope did not have
+to be reduced: the YouTube channel exposes an Atom feed (channel id resolved
+from the handle), and both blogs publish RSS. Feed entries are filtered by the
+`match` keywords already in the watchlist — without that, every unrelated post
+fires. A source with no `feed:` and no query is reported as skipped and left
+to the quarterly manual review, so the automation cannot silently appear to
+cover more than it does.
+
+**The separation is enforced in code, not just in prose:** the script opens an
+issue and writes state. It has no path that edits a rule, a dossier, or this
+file. Triage stays human, and the issue body carries the source-quality
+checklist and the requirement to log the outcome *including* "no change".
+
+**The seen-state ships empty deliberately.** A local verification run had
+populated it, which would have marked 33 existing items as reviewed without
+anyone reading them — quiet, and precisely what this repo forbids. Reset so
+the first scheduled run opens a backlog issue.
+
+**Notable on the very first run**, pending triage: The Quantified Scientist
+published "Oura Ring 5 Scientific Review (1 Month Of Data)" (2026-08-08), and
+DC Rainmaker an accuracy deep-dive comparing Garmin Cirqa, Whoop 5.0, Fitbit
+Air, Amazfit Helio and Polar Loop (2026-08-03). Both bear on Rule A's
+provisional status and on the device dossiers. **Not yet reviewed, and
+therefore not yet reflected in any rule.**
+
 ## 2026-08-30 — Intensity-scoped HR confidence; first known-defect record
 
 Prompted by a user asking whether strap use is detectable from the API, and

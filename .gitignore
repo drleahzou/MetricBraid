@@ -30,3 +30,6 @@ node_modules/
 __pycache__/
 .venv/
 .DS_Store
+
+# Evidence-watch transient artifact (written by the workflow, then deleted)
+.evidence-watch-issue.md

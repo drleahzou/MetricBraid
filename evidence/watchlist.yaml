@@ -1,21 +1,32 @@
-# Monitored sources for the research watch (weekly job → `evidence-review` issues).
-# A flag is never an automatic rule change.
+# Monitored sources for the research watch.
+#
+# Checked weekly by .github/workflows/evidence-watch.yml, which runs
+# scripts/evidence_watch.py and opens an issue when something new appears.
+# Sources with a `feed:` or `type: pubmed_query` are checked automatically;
+# anything else is left to the quarterly manual review and is reported as
+# skipped by the script.
+#
+# **A flag is never an automatic rule change.** The job opens an issue for a
+# human to triage. It never edits a rule, a dossier, or the changelog.
 sources:
   - name: The Quantified Scientist (Rob ter Horst)
     type: youtube_channel
     url: https://www.youtube.com/@TheQuantifiedScientist
+    feed: https://www.youtube.com/feeds/videos.xml?channel_id=UChNWxrTlmh4IRSevon1X93g
     why: EEG/ECG-referenced consumer wearable testing; original basis of rules A/B/C
-    match: [oura, garmin, sleep, HRV, heart rate, accuracy]
+    match: [oura, garmin, whoop, fitbit, apple, sleep, HRV, heart rate, accuracy, tracker]
   - name: DC Rainmaker
     type: blog
     url: https://www.dcrainmaker.com/
+    feed: https://www.dcrainmaker.com/feed
     why: sport-sensor and device accuracy testing
-    match: [garmin, heart rate, accuracy, optical]
+    match: [garmin, heart rate, accuracy, optical, strap, hrm, sensor]
   - name: Marco Altini
     type: blog
     url: https://marcoaltini.substack.com/
+    feed: https://marcoaltini.substack.com/feed
     why: HRV measurement methodology
-    match: [HRV, baseline, measurement]
+    match: [HRV, baseline, measurement, accuracy, validation]
   - name: PubMed — wearable validation
     type: pubmed_query
     query: '(Oura OR Garmin) AND (validation OR polysomnography OR accuracy) AND (sleep OR "heart rate variability")'
@@ -48,5 +59,10 @@ open_gaps:
       comparison. Consumer tech-press tests do not meet the bar.
 
 review:
-  automated: weekly
+  # What the automation actually does — see .github/workflows/evidence-watch.yml
+  automated:
+    schedule: weekly           # Mondays 07:00 UTC, plus manual dispatch
+    covers: [pubmed_query, sources with a `feed:` url]
+    action: opens an issue labelled `evidence-review`; never edits a rule
+    state: evidence/.watch-state.json   # so a hit is reported once, not weekly
   manual_full_review: quarterly

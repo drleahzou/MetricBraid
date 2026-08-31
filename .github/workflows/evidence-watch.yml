@@ -1,0 +1,71 @@
+name: Evidence watch
+
+# Checks the sources in evidence/watchlist.yaml for new material and opens an
+# issue when something appears. It NEVER edits a rule, a dossier, or the
+# changelog — a flag is not a rule change. See evidence/README.md.
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"      # Mondays 07:00 UTC
+  workflow_dispatch:          # and on demand
+
+permissions:
+  contents: write             # to commit the updated seen-state
+  issues: write               # to open the review issue
+
+concurrency:
+  group: evidence-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Check watchlist sources
+        id: watch
+        run: |
+          python3 scripts/evidence_watch.py
+          if [ -f .evidence-watch-issue.md ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure label exists
+        if: steps.watch.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create evidence-review \
+            --description "New material flagged by the automated evidence watch" \
+            --color 0E8A16 2>/dev/null || true
+
+      - name: Open review issue
+        if: steps.watch.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Evidence review: new material found $(date -u +%Y-%m-%d)" \
+            --label evidence-review \
+            --body-file .evidence-watch-issue.md
+
+      - name: Record what was seen
+        run: |
+          rm -f .evidence-watch-issue.md
+          if ! git diff --quiet -- evidence/.watch-state.json; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add evidence/.watch-state.json
+            git commit -m "Evidence watch: record sources seen $(date -u +%Y-%m-%d)"
+            git push
+          fi

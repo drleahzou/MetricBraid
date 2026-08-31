@@ -1,9 +1,13 @@
-# MetricBraid device registry
+# MetricBraid device registry — USER CONFIGURATION
 # ---------------------------------------------------------------------------
-# The routing rules in CLAUDE.md are written against CAPABILITY CLASSES, not
-# brands. This file is where you declare which devices you own and which
-# classes each one provides. Edit it and the rules follow your setup — you
-# should not need to edit CLAUDE.md itself.
+# This is the configuration layer. The framework lives in CLAUDE.md (routing
+# rules) and spec/ (the routed-observation contract); the empirical layer lives
+# in evidence/. Those three name no hardware. THIS file is where hardware is
+# named, and it is the only one most people ever edit.
+#
+# The routing rules are written against CAPABILITY CLASSES, not brands. Declare
+# which devices you own and which classes each one provides, and the rules
+# follow your setup — you should not need to edit CLAUDE.md itself.
 #
 # CAPABILITY CLASSES
 #   passive_247      Worn continuously, measures passively (sleep, resting HR,
@@ -18,9 +22,12 @@
 # HR SENSOR CLASSES (see evidence/general/hr-sensor-placement.md)
 #   ecg_chest_strap  Electrical, chest.        Highest trust.
 #   optical_armband  Optical, upper arm/forearm. High trust.
-#   wrist_optical    Optical, wrist.          Low trust during exercise.
-#   ring_ppg         Optical, finger.         Unknown during exercise.
-#   other_ble        Earbuds, gym equipment.  Unknown — treated as undeclared.
+#   wrist_optical    Optical, wrist.          Low during exercise.
+#   ring_ppg         Optical, finger.         Unvalidated during exercise.
+#   other_ble        Earbuds, gym equipment.  Unvalidated — treated as undeclared.
+#
+# These are MEASUREMENT confidence grades, and `unvalidated` is not `low`:
+# low means studied and found poor, unvalidated means nobody has looked.
 #
 # IMPORTANT: entries below declare CAPABILITIES (how a device is worn, what it
 # records) — these are checkable facts. They do NOT confer accuracy claims.
@@ -54,7 +61,8 @@ devices:
 # EXTERNAL HR MONITORS
 # No API reports which sensor fed a session, so this must be declared.
 # Undeclared activity types are treated as UNMONITORED for confidence purposes
-# — the rules will flag the HR as low-confidence rather than assume.
+# — the rules grade the HR by the recording device's own sensor class and
+# intensity rather than assuming a monitor was worn.
 # ---------------------------------------------------------------------------
 external_hr_monitors:
   owned:
@@ -64,7 +72,7 @@ external_hr_monitors:
 
   worn_for:
     # Declared by the user 2026-08-30. No API reports the HR sensor, so this
-    # is the source of truth for which sessions have strap-grade HR.
+    # declaration is the only record of which sessions have strap-grade HR.
     ecg_chest_strap:
       - strengthTraining
       - strength_training
@@ -129,10 +137,22 @@ known_defects:
 # ---------------------------------------------------------------------------
 # TIEBREAKS — used when two devices declare the same capability class.
 # See CLAUDE.md "MULTIPLE DEVICES, SAME CLASS".
+#
+# A tiebreak is USER PREFERENCE, not evidence. It resolves ROUTING (which
+# source gets reported) and buys exactly nothing for MEASUREMENT CONFIDENCE
+# (whether that source's number is any good) — no study orders one 24/7
+# wearable against another. The routing basis becomes `user_preference`, and
+# the assistant is required to say a preference decided the answer and to keep
+# the other device's value visible alongside it.
+#
+# Leave one `null` or unset and the conflict is reported as UNRESOLVED, with
+# both values and their provenance. That is a valid choice, not a gap.
 # ---------------------------------------------------------------------------
 tiebreaks:
-  passive_247: oura       # which device wins sleep / HRV / resting HR
-  recorded_workout: garmin # which wins the EVENT channel (not HR — see Rule B)
+  passive_247: oura        # which device is reported for sleep / HRV / resting HR
+  recorded_workout: garmin # which owns the EVENT channel when BOTH devices
+                           # recorded the same session. Never the HR channel —
+                           # that routes by sensor class (Rule B).
   auto_detected: null      # null = whichever device detected it (Rule C)
 
 # ---------------------------------------------------------------------------

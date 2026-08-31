@@ -1,0 +1,98 @@
+[
+  {
+    "metric": "total_sleep_time",
+    "channel": "passive",
+    "value": 421,
+    "unit": "min",
+    "window": {
+      "start": "2026-08-27T23:11:00-04:00",
+      "end": "2026-08-28T06:39:00-04:00"
+    },
+    "routing_status": "routed",
+    "selected_source": {
+      "device": "oura",
+      "capability_class": "passive_247",
+      "sensor_class": "ring_ppg",
+      "record_id": "oura:sleep:2026-08-28"
+    },
+    "routing": {
+      "rule": "A",
+      "basis": "user_preference",
+      "decided_by": "tiebreaks.passive_247 — two devices declare passive_247 and no study orders them"
+    },
+    "measurement": {
+      "confidence": "high",
+      "evidence": [
+        "evidence/general/sleep-tracking.md",
+        "evidence/devices/oura.md"
+      ],
+      "caveats": [
+        "Total sleep time is the well-validated part of consumer sleep tracking, but it runs ~17 min short against PSG on average (pooled, 24 studies). Trend it; do not read it to the minute.",
+        "The other passive device reported 447 min. The tiebreak chose which to report; it did not establish which is closer to the truth."
+      ]
+    },
+    "merged_from": [],
+    "competing": [
+      {
+        "device": "garmin",
+        "capability_class": "passive_247",
+        "sensor_class": "wrist_optical",
+        "value": 447,
+        "unit": "min",
+        "note": "Not averaged. Kept so the 26 min spread stays visible."
+      }
+    ],
+    "must_disclose": [
+      "A tiebreak in devices.yaml decided this, not evidence — the two devices disagree by 26 min.",
+      "Rule A is provisional: no independent head-to-head compares a 24/7 ring against a training watch for passive signals."
+    ]
+  },
+  {
+    "metric": "hrv_rmssd_night",
+    "channel": "passive",
+    "value": null,
+    "unit": "ms",
+    "window": {
+      "start": "2026-08-27T23:11:00-04:00",
+      "end": "2026-08-28T06:39:00-04:00"
+    },
+    "routing_status": "unresolved",
+    "selected_source": null,
+    "routing": {
+      "rule": "A",
+      "basis": "unresolved",
+      "decided_by": "no_rule_applies — two devices declare passive_247 and tiebreaks.passive_247 is unset"
+    },
+    "measurement": {
+      "confidence": "moderate",
+      "evidence": [
+        "evidence/devices/oura.md"
+      ],
+      "caveats": [
+        "Neither absolute value is comparable to the other or to a clinical figure: one device is documented ~15 ms low on RMSSD vs ECG, and the other has no dossier at all.",
+        "Both are usable against their own baselines separately. They are not usable against each other."
+      ]
+    },
+    "merged_from": [],
+    "competing": [
+      {
+        "device": "oura",
+        "capability_class": "passive_247",
+        "sensor_class": "ring_ppg",
+        "value": 38,
+        "unit": "ms"
+      },
+      {
+        "device": "garmin",
+        "capability_class": "passive_247",
+        "sensor_class": "wrist_optical",
+        "value": 61,
+        "unit": "ms"
+      }
+    ],
+    "must_disclose": [
+      "No rule or tiebreak resolves this. Both numbers are reported with their sources; picking one would be invention.",
+      "Set tiebreaks.passive_247 in devices.yaml to choose which device to report from — that is a preference, and will be stated as one."
+    ]
+  }
+]
