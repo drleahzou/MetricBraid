@@ -184,9 +184,13 @@ In strict order:
 
 A new finding is **never** an automatic rule change.
 
-1. Something surfaces — a new study, new firmware, a device change (see
-   [watchlist.yaml](watchlist.yaml): weekly automated flags, quarterly manual
-   review).
+1. Something surfaces — a new study, new firmware, a device change.
+   [`.github/workflows/evidence-watch.yml`](../.github/workflows/evidence-watch.yml)
+   checks [watchlist.yaml](watchlist.yaml) every Monday and opens an issue
+   labelled `evidence-review` when it finds something. It reads PubMed and the
+   RSS feeds of the watched testers; **it never edits a rule, a dossier, or
+   this changelog.** Anything it cannot check automatically is reported as
+   skipped and falls to the quarterly manual review.
 2. It is raised and recorded — not silently applied.
 3. Only then is a rule edit proposed.
 4. The edit is logged in [CHANGELOG.md](CHANGELOG.md) — **including reviews
