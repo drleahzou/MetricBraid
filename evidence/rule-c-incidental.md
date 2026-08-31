@@ -1,7 +1,17 @@
-# Rule C — incidental auto-detected activity → the detecting device wins by default
+# Rule C — incidental auto-detected activity → the detecting device is the governing source
 
-**Status: VERIFIED (2026-07-14) — non-provisional. Rule is logically forced;
-the citation bounds how much to trust the numbers it attributes.**
+**Routing basis: `structural`.** Not a verdict about accuracy — the rule is
+logically forced, because there is no competing record to reconcile against.
+Attribution cannot be wrong here in the way an accuracy contest can.
+
+**Measurement confidence: `moderate` for steps and active minutes,
+`unusable` for energy expenditure.** These grades are what the citation
+actually bounds, and they are unaffected by how firmly the routing is decided.
+
+This is the clearest case for keeping the two axes apart: certainty about
+*which device owns the bout* buys nothing at all for the *magnitude* it
+reports. Both dimensions are defined in
+[`../spec/routed-observation.md`](../spec/routed-observation.md).
 
 ## Claim
 
@@ -33,8 +43,8 @@ is accurate for no brand.**
 
 ## Scope and caveat
 
-- **Attribution:** fully supported and logically forced — the detecting device
-  owns the bout; no reconciliation applies.
+- **Attribution:** logically forced — the detecting device owns the bout; no
+  reconciliation applies. Routing basis `structural`.
 - **Magnitude:** steps/active-minutes carry real error. Lab accuracy is decent
   (~45% within ±3%, biased toward underestimation); **free-living accuracy is
   materially worse** (the review notes controlled settings outperform
