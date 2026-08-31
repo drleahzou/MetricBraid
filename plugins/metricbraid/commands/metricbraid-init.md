@@ -1,81 +1,151 @@
 ---
-description: Set up MetricBraid sensor-evidence routing in the current project — installs the CLAUDE.md rules, the device registry and the food-log template, and checks that the bundled MCP servers are connected.
+description: Set up MetricBraid in this project, including device configuration, prerequisites, authentication guidance, and a final connection check.
 ---
 
-Set up MetricBraid in the current project directory.
+Set up MetricBraid in the current project directory. This is an interactive
+setup command. Do not pull or analyze any health data while running it.
 
-MetricBraid has three layers, and this command installs the first two. Keep
-them distinct when explaining anything to the user:
+MetricBraid has three layers. Keep them distinct when explaining the setup:
 
-- **Framework** — `CLAUDE.md` (the routing rules). Hardware-agnostic; the
-  user should not need to edit it. The routed-observation contract it refers
-  to ships with this plugin as the skill's `references/routed-observation.md`.
-- **User configuration** — `devices.yaml` and the MCP servers. Where hardware
-  is named. **The only file most people ever edit.**
-- **Evidence** — ships inside the skill as `references/`. Read-only here.
+- **Framework** — `CLAUDE.md` contains hardware-agnostic routing rules. The
+  user should not need to edit it.
+- **User configuration** — `devices.yaml`, credentials, and MCP servers name
+  the user's hardware and integrations. This is the layer being configured.
+- **Evidence** — read-only dossiers and the routed-observation contract ship
+  inside the plugin skill's `references/` directory.
 
-## Steps
+Use the phases below in order. Report setup states as **ready**, **pending a
+restart**, **not configured**, or **not selected**. A provider that has not
+been authenticated on a first run is expected setup work, not a failed
+installation.
 
-1. **Check for an existing `CLAUDE.md`** in the project root.
-   - If none exists, copy `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.md` there.
-   - If one exists, do **not** overwrite it. Show the user what the
-     MetricBraid rules would add, and offer to append them under a
-     `# Sensor evidence routing (MetricBraid)` heading, or to write the
-     template to `CLAUDE.metricbraid.md` for them to merge by hand. Ask
-     which they want before writing.
+## Phase 1 — Welcome and preflight
 
-2. **Install the device registry.** Copy
-   `${CLAUDE_PLUGIN_ROOT}/templates/devices.yaml` into the project root if it
-   isn't already there, then **ask the user what they actually wear** and fill
-   it in — devices, capability classes, HR sensor placement, any external HR
-   monitor, and tiebreak preferences. The shipped file is the author's setup
-   (a ring plus a running watch) used as a worked example; it ships with
-   commented presets for Whoop, Apple Watch, Fitbit, Polar, Coros, Suunto and
-   Samsung.
+1. Tell the user what will happen: setup installs project files, asks about
+   their devices, guides authentication for selected providers, and ends with
+   a verification prompt. It does not read any health data.
+2. Ask which data sources they intend to use now:
+   - Oura;
+   - Garmin;
+   - another integration;
+   - pasted or local exports only.
+   Do not require Oura or Garmin just because their MCP servers are bundled.
+3. Check prerequisites only for the selected bundled providers:
+   - Oura: Node.js 18 or newer with `npx`, plus Python 3.9 or newer for the
+     dependency-free OAuth helper.
+   - Garmin: `uvx`; it fetches the required Python runtime itself.
+4. State every prerequisite result plainly. If one is missing, point to the
+   relevant section of `${CLAUDE_PLUGIN_ROOT}/SETUP.md`. Do not install or
+   upgrade system software without the user's explicit approval. Continue
+   setting up unaffected providers and project files.
+5. Check whether each selected provider is already connected in this session.
+   Treat a missing first-run credential as **not configured**. Remember that
+   MCP servers capture their environment at session start, so credentials
+   added during this command cannot make the current server reconnect. The
+   plugin's static MCP configuration may also attempt to start a bundled
+   provider the user does not use; label it **not selected** and explain that
+   its disconnected state does not make the installation fail.
 
-   Be explicit with the user about two things:
-   - Declaring a device grants **capabilities, not accuracy**. A device with
-     no dossier still routes correctly but inherits only the device-agnostic
-     baselines.
-   - A **tiebreak is a preference, not evidence.** It decides which source
-     gets reported when two devices declare the same capability class, and
-     improves measurement confidence by nothing. Leaving one unset is a valid
-     choice: the conflict is then reported as unresolved, with both values.
+## Phase 2 — Install the project files
 
-3. **Install the nutrition template.** Copy
-   `${CLAUDE_PLUGIN_ROOT}/templates/food-log.example.csv` into the project
-   root if it isn't already there. Tell the user to `cp` it to
-   `food-log.csv` and add that filename to their `.gitignore` — it will
-   contain personal data.
+Never overwrite an existing file silently.
 
-4. **Verify the bundled integrations.** The routing model is
-   hardware-agnostic, but the shipped plumbing covers two providers. Check
-   whether the `garmin` and `oura` MCP servers are connected in this session.
-   - Report the status of each plainly. Do not assume they work.
-   - If **Oura** is failing with a 401: the most likely cause is a Personal
-     Access Token. Oura deprecated PATs in December 2025 and newly created
-     ones return 401 — the PAT page still issues them, which is why this
-     traps people. Point the user to `scripts/oura_auth.py` in the
-     MetricBraid repo for the OAuth2 flow. **Never advise regenerating or
-     deleting an existing token as a first move** — a pre-deprecation PAT
-     that still works cannot be replaced once deleted.
-   - If **Garmin** exited at startup, that is almost always missing
-     authentication — have them run `garmin-mcp-auth`.
-   - Remember MCP servers capture their environment at session start, so a
-     session restart is required after any env change.
-   - Other hardware works too: a community MCP server added to `.mcp.json`,
-     or pasted exports. Declare it in `devices.yaml` and the rules apply
-     unchanged.
+1. **Routing rules:**
+   - If the project has no `CLAUDE.md`, copy
+     `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.md` there.
+   - If one exists, show what MetricBraid would add and ask whether to append
+     it under `# Sensor evidence routing (MetricBraid)` or write
+     `CLAUDE.metricbraid.md` for manual merging.
+2. **Device registry:** copy
+   `${CLAUDE_PLUGIN_ROOT}/templates/devices.yaml` to `devices.yaml` only when
+   the project does not already have one. The safe template declares no
+   active devices.
+3. Ask what the user actually wears and update `devices.yaml` with:
+   - devices and stable IDs;
+   - capability classes;
+   - heart-rate sensor placement;
+   - external heart-rate monitors and when they are worn;
+   - optional tiebreak preferences.
 
-5. **Confirm what was installed**, and state two things the user should
-   expect to hear from the assistant afterwards:
-   - **Rule A (passive signals) is provisional by design.** Its *routing* is
-     reasoned from device design rather than measured, and the assistant is
-     required to say so whenever an answer leans on it. That is separate from
-     the measurements, which are graded individually — sleep duration is well
-     validated even though the rule that routes it is not.
-   - **Conflicts are not silently resolved.** When two devices disagree and
-     no rule or tiebreak applies, the assistant reports both and says nothing
-     resolved it. It will never average two sensors.
+   Explain that declaring a capability does not claim accuracy. A tiebreak is
+   a reporting preference, not evidence, and leaving it unset is valid: both
+   conflicting values will then be reported as unresolved.
+4. **Self-contained setup support:**
+   - Copy `${CLAUDE_PLUGIN_ROOT}/SETUP.md` to `SETUP.md` if it is absent.
+   - Ensure a `scripts/` directory exists, then copy
+     `${CLAUDE_PLUGIN_ROOT}/scripts/oura_auth.py` to
+     `scripts/oura_auth.py` if it is absent.
+   - If either destination already exists, leave it unchanged and say so.
+5. **Nutrition template:** copy
+   `${CLAUDE_PLUGIN_ROOT}/templates/food-log.example.csv` to the project root
+   if it is absent. If the user wants nutrition routing, tell them to copy it
+   to `food-log.csv`; that filename is personal data and should be gitignored.
 
-Do not pull or analyze any health data as part of this command. Setup only.
+## Phase 3 — Authenticate selected providers
+
+Guide only the providers selected in Phase 1. Never ask the user to paste a
+password, client secret, access token, refresh token, or MFA code into chat.
+Have them enter secrets directly in their terminal or provider page.
+
+### Oura
+
+Use the project-local `SETUP.md` and `scripts/oura_auth.py` installed above.
+New setups must use OAuth2. Oura deprecated Personal Access Tokens in December
+2025; newly created PATs return 401 even though the PAT page may still issue
+them. Never advise deleting a working pre-deprecation PAT as a first step,
+because it cannot be recreated.
+
+The user must register an Oura application, set the documented redirect URI,
+export `OURA_CLIENT_ID` and `OURA_CLIENT_SECRET` in their terminal, and run:
+
+```bash
+python3 scripts/oura_auth.py login
+```
+
+They should configure `OURA_ACCESS_TOKEN` using the helper as shown in
+`SETUP.md`, rather than pasting a short-lived literal token into a profile.
+
+### Garmin
+
+Have the user run the interactive `garmin-mcp-auth` command shown in
+`SETUP.md`. It is the recommended route and supports MFA. Credentials and MFA
+codes stay in the terminal prompt; they must not be entered into chat.
+
+### Other integrations or local exports
+
+No bundled authentication applies. Confirm how the observations will enter
+the project, declare the hardware in `devices.yaml`, and explain that the same
+routing rules apply.
+
+## Phase 4 — Readiness and exact next action
+
+1. Summarize every installed, preserved, or skipped file.
+2. Give one status for each selected provider:
+   - **ready** if it was already connected and its prerequisites are present;
+   - **pending a restart** if credentials were added or changed;
+   - **not configured** if a required auth step remains;
+   - **not selected** for bundled providers the user does not use.
+3. Do not call an integration broken merely because it cannot reconnect in the
+   current session after first-run authentication.
+4. If any credential or environment value changed, tell the user to exit and
+   start a fresh Claude Code session in this project. A plugin reload alone is
+   not enough for MCP environment changes.
+5. End with this explicit verification prompt for the selected providers,
+   removing any provider the user did not select:
+
+   > Verify my MetricBraid setup. Pull yesterday's sleep from Oura and
+   > yesterday's stats from Garmin, then report each connection as ready or
+   > explain the exact remaining setup step. Do not combine or analyze the
+   > measurements yet.
+
+6. Define the finish line: setup is complete when the fresh session returns
+   real data from each selected provider and `devices.yaml` contains only the
+   user's actual hardware. If the user selected only local or pasted data,
+   setup is complete when the files are installed and the registry is correct.
+
+Also tell the user what normal MetricBraid answers will do after setup:
+
+- Rule A passive routing is provisional by design and will be labelled as
+  such separately from each measurement's confidence.
+- Unresolved conflicts remain visible with both values; MetricBraid never
+  silently averages two sensors.
