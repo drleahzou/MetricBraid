@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/drleahzou/MetricBraid/spec/routed-observation.schema.json",
+  "title": "MetricBraid routed observation",
+  "description": "The canonical representation of one metric after arbitration. One object = one metric, on one channel, over one time window. A record that carries several channels (a workout with pace and heart rate) produces several routed observations, not one merged object.",
+  "type": "object",
+  "required": ["metric", "channel", "window", "routing_status", "routing", "measurement"],
+  "additionalProperties": false,
+  "properties": {
+    "metric": {
+      "type": "string",
+      "description": "Stable name for the quantity, e.g. avg_heart_rate, total_sleep_time, steps, distance_m, protein_g."
+    },
+    "channel": {
+      "$ref": "#/$defs/channel"
+    },
+    "value": {
+      "description": "The number or label finally reported. null whenever routing_status is not 'routed' — a withheld or unresolved observation has no single value by construction.",
+      "type": ["number", "string", "null"]
+    },
+    "unit": {
+      "type": ["string", "null"],
+      "description": "bpm, ms, min, m, kcal, steps, count. null for unitless labels and for null values."
+    },
+    "window": {
+      "type": "object",
+      "description": "The time span the value describes. For instantaneous or daily values set start and end to the same instant or to the day's bounds.",
+      "required": ["start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "start": { "type": "string" },
+        "end": { "type": "string" }
+      }
+    },
+    "routing_status": { "$ref": "#/$defs/routing_status" },
+    "selected_source": {
+      "description": "The source whose measurement is being reported. null when routing_status is 'unresolved' or 'withheld'. 'Selected' means a rule picked it, not that it is correct.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["device", "capability_class"],
+          "additionalProperties": false,
+          "properties": {
+            "device": { "type": "string", "description": "The device id as declared in devices.yaml." },
+            "capability_class": { "$ref": "#/$defs/capability_class" },
+            "sensor_class": { "$ref": "#/$defs/sensor_class" },
+            "record_id": { "type": ["string", "null"] }
+          }
+        }
+      ]
+    },
+    "routing": {
+      "type": "object",
+      "description": "Why this source was selected. Separate from whether the measurement is any good — see measurement.confidence.",
+      "required": ["rule", "basis", "decided_by"],
+      "additionalProperties": false,
+      "properties": {
+        "rule": { "$ref": "#/$defs/rule" },
+        "basis": { "$ref": "#/$defs/routing_basis" },
+        "decided_by": {
+          "type": "string",
+          "description": "The specific mechanism, in words: sole_detector, sole_recorder, sensor_class_hierarchy, tiebreaks.passive_247, user_declaration, known_defect, no_rule_applies."
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "description": "How much to trust the number itself, independent of how confidently it was routed.",
+      "required": ["confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "confidence": { "$ref": "#/$defs/measurement_confidence" },
+        "evidence": {
+          "type": "array",
+          "description": "Repo-relative paths to the dossiers backing this confidence grade. Empty means no dossier applies — say that rather than implying support.",
+          "items": { "type": "string" }
+        },
+        "caveats": {
+          "type": "array",
+          "description": "Specific limitations on this number: intensity regime, generation, free-living error, uncited sub-signal.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "merged_from": {
+      "type": "array",
+      "description": "Competing records for the same real-world event that were folded in rather than dropped silently. Deduplication writes here.",
+      "items": {
+        "type": "object",
+        "required": ["device", "disposition"],
+        "additionalProperties": false,
+        "properties": {
+          "device": { "type": "string" },
+          "record_id": { "type": ["string", "null"] },
+          "window": { "type": ["string", "null"] },
+          "disposition": { "$ref": "#/$defs/disposition" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "competing": {
+      "type": "array",
+      "description": "Disagreeing measurements that no rule resolved. Populated when routing_status is 'unresolved'. Never averaged, never quietly dropped.",
+      "items": {
+        "type": "object",
+        "required": ["device", "value"],
+        "additionalProperties": false,
+        "properties": {
+          "device": { "type": "string" },
+          "capability_class": { "$ref": "#/$defs/capability_class" },
+          "sensor_class": { "$ref": "#/$defs/sensor_class" },
+          "value": { "type": ["number", "string", "null"] },
+          "unit": { "type": ["string", "null"] },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "must_disclose": {
+      "type": "array",
+      "description": "Statements that have to reach the user in the final answer when this observation is material to it. Provisional routing, tiebreak use, missing dossier, defect withholding and low measurement confidence all land here.",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "channel": {
+      "enum": ["event", "heart_rate", "passive", "incidental", "intake"],
+      "description": "Which claim about the record this observation carries. Channels route independently: one event can take its event channel from one device and its heart_rate channel from another."
+    },
+    "capability_class": {
+      "enum": ["passive_247", "recorded_workout", "auto_detected", "self_reported"],
+      "description": "The class the RECORD belongs to, not the full set the device declares in devices.yaml."
+    },
+    "sensor_class": {
+      "enum": ["ecg_chest_strap", "optical_armband", "wrist_optical", "ring_ppg", "other_ble", "unspecified", "not_applicable"],
+      "description": "unspecified = the sensor is undeclared for this activity type, which is treated as unmonitored for confidence. not_applicable = the channel has no HR sensor behind it."
+    },
+    "rule": {
+      "enum": ["A", "B", "C", "D"],
+      "description": "The routing rule in CLAUDE.md that selected the source."
+    },
+    "routing_basis": {
+      "enum": ["structural", "evidence_backed", "provisional", "user_preference", "unresolved"],
+      "description": "structural: forced by the shape of the data, no accuracy contest needed. evidence_backed: a cited dossier establishes the ordering. provisional: reasoned but not measured, with a named open gap. user_preference: a devices.yaml tiebreak decided it, which is preference not evidence. unresolved: nothing decided it."
+    },
+    "measurement_confidence": {
+      "enum": ["high", "moderate", "low", "unvalidated", "unusable"],
+      "description": "high: validated against a clinical reference for this use. moderate: real but bounded error, usable as a trend. low: known-poor in this regime, state in words, never as a bare number. unvalidated: no study covers this sensor in this regime; absence of evidence, not evidence of error. unusable: do not build a conclusion on it."
+    },
+    "routing_status": {
+      "enum": ["routed", "unresolved", "withheld"],
+      "description": "routed: a rule or tiebreak selected a source. unresolved: candidates disagree and nothing resolves them — report all of them. withheld: a source exists but must not be reported (known defect, undeclared sensor that changes the answer, missing data)."
+    },
+    "disposition": {
+      "enum": ["absorbed", "duplicate_collapsed", "superseded_by_channel"],
+      "description": "absorbed: an auto-detected record folded into the recorded one for the same event. duplicate_collapsed: a near-identical record from the same source. superseded_by_channel: the record still owns another channel of the same event."
+    }
+  }
+}

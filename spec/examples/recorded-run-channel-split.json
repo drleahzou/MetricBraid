@@ -1,0 +1,64 @@
+[
+  {
+    "metric": "distance_m",
+    "channel": "event",
+    "value": 8412,
+    "unit": "m",
+    "window": { "start": "2026-08-28T07:02:00-04:00", "end": "2026-08-28T07:48:00-04:00" },
+    "routing_status": "routed",
+    "selected_source": {
+      "device": "garmin",
+      "capability_class": "recorded_workout",
+      "sensor_class": "not_applicable",
+      "record_id": "garmin:activity:19488213"
+    },
+    "routing": {
+      "rule": "B",
+      "basis": "structural",
+      "decided_by": "sole_recorder — only one overlapping record carries GPS/pace at all"
+    },
+    "measurement": {
+      "confidence": "high",
+      "evidence": [],
+      "caveats": ["No dossier challenges GPS/pace/distance from a recording watch; the event channel is what the device is for."]
+    },
+    "merged_from": [
+      {
+        "device": "oura",
+        "record_id": "oura:workout:c41a",
+        "window": "2026-08-28T07:14:00-04:00/2026-08-28T07:46:00-04:00",
+        "disposition": "absorbed",
+        "note": "Auto-detected running bout, overlapping inside the ±12 min buffer. Same real-world event; not counted again in daily totals."
+      }
+    ],
+    "must_disclose": [],
+    "competing": []
+  },
+  {
+    "metric": "avg_heart_rate",
+    "channel": "heart_rate",
+    "value": 152,
+    "unit": "bpm",
+    "window": { "start": "2026-08-28T07:02:00-04:00", "end": "2026-08-28T07:48:00-04:00" },
+    "routing_status": "routed",
+    "selected_source": {
+      "device": "garmin",
+      "capability_class": "recorded_workout",
+      "sensor_class": "ecg_chest_strap",
+      "record_id": "garmin:activity:19488213"
+    },
+    "routing": {
+      "rule": "B",
+      "basis": "evidence_backed",
+      "decided_by": "sensor_class_hierarchy — an external_hr_monitor is present, declared via devices.yaml external_hr_monitors.worn_for.ecg_chest_strap for `running`"
+    },
+    "measurement": {
+      "confidence": "high",
+      "evidence": ["evidence/general/hr-sensor-placement.md"],
+      "caveats": ["Chest straps can misread in the first minutes before dry electrodes make contact."]
+    },
+    "merged_from": [],
+    "must_disclose": [],
+    "competing": []
+  }
+]
