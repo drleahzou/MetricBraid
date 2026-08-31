@@ -1,7 +1,14 @@
 # Setup & Authentication Guide
 
-The MCP servers are configured in `.mcp.json` and install themselves on
-first launch (Garmin via `uvx`, Oura via `npx`). The only thing they need
+**This is integration setup — the configuration layer, not the framework.**
+The routing rules in `CLAUDE.md`, the contract in `spec/` and the dossiers in
+`evidence/` need no setup and no credentials; they are hardware-agnostic. What
+follows is specific to the two MCP servers this repo currently bundles. A
+device reached some other way — a community MCP server, or a pasted export —
+skips this file entirely and is declared in `devices.yaml` like any other.
+
+The bundled MCP servers are configured in `.mcp.json` and install themselves
+on first launch (Garmin via `uvx`, Oura via `npx`). The only thing they need
 from you is credentials — one time each.
 
 ## Prerequisites
@@ -120,6 +127,10 @@ cp food-log.example.csv food-log.csv
 
 `food-log.csv` is gitignored. See the **NUTRITION DATA INTAKE** section of
 `CLAUDE.md` for how the assistant is instructed to weight these entries.
+
+Rule D is also the worked proof that the framework does not need a server:
+intake is routed, graded and reported with provenance like anything else, and
+has never had an integration behind it.
 
 ---
 
