@@ -258,6 +258,9 @@ when you are troubleshooting.
 > **Oura note:** Personal Access Tokens were deprecated in December 2025.
 > Newly created PATs return `401`; OAuth2 is the supported authentication path.
 
+Already using the Claude Code plugin? See
+[Updating an existing install](docs/2026-08-31-claude-code-quick-start.md#updating-an-existing-install).
+
 ---
 
 # How MetricBraid works

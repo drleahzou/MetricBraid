@@ -64,3 +64,31 @@ done when init reports the project files and device registry ready.
 
 For provider-specific authentication and troubleshooting, use
 [`SETUP.md`](../SETUP.md).
+
+## Updating an existing install
+
+Claude Code compares plugin versions using its locally cached marketplace.
+Refresh that cache before updating:
+
+```text
+/plugin marketplace update metricbraid
+/plugin update metricbraid@metricbraid
+```
+
+If `/plugin` is unavailable in your environment, use the terminal commands:
+
+```bash
+claude plugin marketplace update metricbraid
+claude plugin update metricbraid@metricbraid
+```
+
+Restart Claude Code afterwards so the new skill and MCP definitions load.
+
+> **Installed before v0.2.0?** Releases through `0.1.0` reused one version
+> number, so a normal update can incorrectly report that it is current.
+> Reinstall once, then use normal updates for later versions:
+>
+> ```bash
+> claude plugin uninstall metricbraid@metricbraid
+> claude plugin install metricbraid@metricbraid
+> ```
