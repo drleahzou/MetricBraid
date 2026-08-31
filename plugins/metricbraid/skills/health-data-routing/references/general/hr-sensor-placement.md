@@ -95,4 +95,4 @@ sensor over a measured-poor one removes the ability to say how wrong the
 number is, which is a downgrade disguised as an upgrade.
 
 **Closes when:** an independent, ECG-referenced comparison of ring PPG
-during exercise is published. Tracked in [`watchlist.yaml`](../watchlist.yaml).
+during exercise is published. Tracked in [`watchlist.yaml`](https://github.com/drleahzou/MetricBraid/blob/main/evidence/watchlist.yaml).

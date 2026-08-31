@@ -1,6 +1,6 @@
 {
   "name": "metricbraid",
-  "description": "Reconcile overlapping health data from an Oura ring and a Garmin watch. Bundles both MCP servers plus a capability-based routing model (which device is the source of truth for which metric), ±12-minute event deduplication, evidence dossiers with verified citations, and analytical standards that require provenance on every number and force provisional verdicts to be stated out loud.",
+  "description": "A provenance and conflict-resolution layer for AI analysis of overlapping personal sensor data. Installs a capability-class routing model that decides which source governs which channel of an event, ±12-minute deduplication that absorbs rather than drops competing records, a canonical routed-observation contract carrying source, sensor, rule and caveats, and a status model that keeps routing basis separate from measurement confidence so a deterministic routing decision never reads as a validated measurement. Hardware is declared in devices.yaml; Garmin and Oura MCP servers are bundled.",
   "version": "0.1.0",
   "author": {
     "name": "drleahzou",
@@ -9,5 +9,14 @@
   "homepage": "https://github.com/drleahzou/MetricBraid",
   "repository": "https://github.com/drleahzou/MetricBraid",
   "license": "MIT",
-  "keywords": ["health", "oura", "garmin", "wearables", "quantified-self"]
+  "keywords": [
+    "health",
+    "wearables",
+    "quantified-self",
+    "sensor-fusion",
+    "provenance",
+    "data-quality",
+    "oura",
+    "garmin"
+  ]
 }

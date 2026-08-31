@@ -27,15 +27,24 @@ baselines applying to any consumer wearable, see [`../general/`](../general/).
 Declared capabilities: `<passive_247 | recorded_workout | auto_detected>`.
 HR sensor: `<ecg_chest_strap | optical_armband | wrist_optical | ring_ppg>`.
 
+**A dossier grades measurements, not routing.** The confidence column below is
+`measurement_confidence` — `high | moderate | low | unvalidated | unusable`,
+defined in [`../routed-observation.md`](../routed-observation.md).
+Nothing you write here changes a rule's `routing_basis`: capability classes
+decide which source owns a signal, and evidence decides what that source's
+number is worth. Adding a dossier for a device does not promote it over
+another device.
+
 ## Evidence
 
-| Date read | Source (journal, PMC/DOI links) | Methodology & reference standard | Generation | Confidence | Findings |
+| Date read | Source (journal, PMC/DOI links) | Methodology & reference standard | Generation | Measurement confidence | Findings |
 |---|---|---|---|---|---|
 | YYYY-MM-DD | | | | | |
 
 ## What these numbers oblige
 
-- <what may now be said, and how confidently>
+- <what may now be said, and how confidently — per signal, since one device
+  can be `high` on duration and `low` on staging>
 
 ## What this evidence does NOT establish
 
