@@ -244,6 +244,11 @@ See [Data access](#data-access).
 
 > **This repository is a template and framework, not a health-data repository. No personal health data is published here.**
 
+> **Security:** Never commit OAuth tokens, Garmin or Oura credentials, raw
+> health exports, `.env` files, or personally identifiable health
+> observations. See [`SECURITY.md`](SECURITY.md) for safe handling and private
+> reporting guidance.
+
 ---
 
 # Install
