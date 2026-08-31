@@ -145,7 +145,7 @@ merged.
   devices declaring `passive_247`. The first observation is resolved by a
   tiebreak (`user_preference`, and it says so); the second has no tiebreak and
   stays `unresolved` with both values preserved.
-- [`examples/withheld-known-defect.json`](https://github.com/drleahzou/MetricBraid/blob/main/spec/examples/withheld-known-defect.json)
+- [`withheld-known-defect.json`](https://github.com/drleahzou/MetricBraid/blob/main/spec/examples/withheld-known-defect.json)
   — a recorded provider defect turns a plausible-looking number into a
   `withheld` observation.
 
