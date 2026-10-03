@@ -18,7 +18,8 @@ grades the prose a person actually reads and is still done by hand.
 ## Running them — Mode A, structured
 
 [`run_fixtures.py`](run_fixtures.py) runs every case as a headless `claude -p`
-session and grades the result with `==`. No judge, no flake.
+session and grades the result with `==`. Grading uses exact comparisons;
+model responses can still vary between runs.
 
 ```bash
 python3 fixtures/run_fixtures.py
@@ -50,13 +51,56 @@ python3 fixtures/run_fixtures.py --dry-run        # print the prompts, call noth
 to `../CLAUDE.md` and to the plugin's `SKILL.md`, which is where mirror drift
 would show up as a behavioural difference rather than a diff.
 
+The fixtures use synthetic observations. Any validation context supplied in a
+case is fictional evidence for testing a decision, not an empirical device
+dossier or permission to process real provider data. The runner includes only
+`config`, `given` and requested metric names; it never supplies expected winners.
+
+## Batch output meanings
+
+These evaluation fields summarise a set of routed observations; they do not
+extend the canonical observation schema:
+
+- **`deduplication: collapse`** — at least one duplicate event was absorbed or
+  merged, within or across sources. This takes precedence over other modes.
+- **`deduplication: within_source_only`** — activity records or an activity-total
+  request require checking, only one source is available, and no duplicate was
+  collapsed. Separate bouts from that source are kept separately.
+- **`deduplication: none`** — no collapse, and either activity deduplication is
+  irrelevant (for example, passive-only readings) or cross-source checking is
+  possible. This does not excuse skipping a relevant duplicate check.
+- **`abstains`** — true exactly when any requested metric is `unresolved` or
+  `withheld`. Reporting both values helpfully while refusing to route an
+  invented mean is still abstention from a single routed number. Missing
+  accuracy evidence alone does not block source selection.
+- **`competing_preserved`** — all candidates in an unresolved disagreement, or
+  losing candidates after a tiebreak. Absorbed activity records instead belong
+  in `merged_from_devices` on the metrics they actually competed for.
+
+Confidence always depends on intended use and applicable evidence. The unknown
+devices in the HRV conflict case remain `unvalidated`; a fixture testing a
+validated within-device trend supplies its validation context explicitly.
+
+## Login, reports and offline checks
+
 The runner needs a working `claude` login in the shell it runs from. It calls
 the API, so it costs money and is not wired into CI.
 
-`--self-test` is, though. It grades every case against its own expectations
-(which must come back clean) and then against a deliberately mis-routed answer
-(which must fail), proving the grader is still attached to the fixtures after
-someone edits either. Offline, free, stdlib only.
+`--json` creates missing parent directories and reserves a new report before
+model calls. Existing files and unwritable destinations are rejected up front;
+choose a fresh filename for each run. Answers and assertions are saved after
+each spec completes, so a later failure does not discard an earlier spec's
+results. For ignored local reports in a repository checkout:
+
+```bash
+python3 fixtures/run_fixtures.py --spec both --json data/fixture-reports/2026-10-03-routing.json
+python3 -m unittest discover -s fixtures -p 'test_*.py'
+```
+
+`--self-test` runs offline and is included in CI. It grades every case against
+its own expectations, then checks that mutations of routing, deduplication,
+abstention, confidence, merges and preserved competitors all fail. This proves
+the grader is still attached to the fixtures. Free, stdlib only.
 
 ```bash
 python3 fixtures/run_fixtures.py --self-test

@@ -119,7 +119,8 @@
       "given": [
         "ring: nightly RMSSD 38 ms",
         "band: nightly RMSSD 61 ms",
-        "Neither device has a dossier in evidence/devices/."
+        "Neither device has a dossier in evidence/devices/.",
+        "The user wants both sourced HRV readings preserved separately; no clinical comparison or validated trend inference is requested."
       ],
       "expect": {
         "deduplication": "none",
@@ -131,12 +132,12 @@
             "routing_status": "unresolved",
             "selected_source": null,
             "routing": { "rule": "A", "basis": "unresolved", "decided_by": "no_rule_applies — both declare passive_247 and tiebreaks.passive_247 is unset" },
-            "measurement": { "confidence": "moderate" },
+            "measurement": { "confidence": "unvalidated" },
             "merged_from_devices": [],
             "must_disclose": [
               "No rule or tiebreak resolves this; both values are reported with their sources.",
               "Setting tiebreaks.passive_247 would decide which to report, and would be a preference rather than a finding.",
-              "Each value is usable against its own baseline; the two are not comparable to each other."
+              "Neither device has applicable HRV validation here, so confidence is unvalidated; no accuracy offset or reliable trend claim is licensed. The two values are not comparable to each other."
             ]
           }
         ],
@@ -203,8 +204,11 @@
         "tiebreaks": {}
       },
       "given": [
-        "watch: recorded `running` 07:00–07:40, nightly HRV, auto-detected afternoon walk",
-        "No other source is configured."
+        "watch: recorded `running` 07:00–07:40, nightly HRV, auto-detected `walking` 15:00–15:20 (20 active minutes)",
+        "The user asks for nightly HRV trend and the afternoon walk's active minutes.",
+        "No other source is configured.",
+        "The nightly HRV is requested for a within-device trend against its own baseline, not an absolute or cross-device comparison.",
+        "Synthetic validation context: an applicable study of this watch supports HRV trends with real but bounded error."
       ],
       "expect": {
         "deduplication": "within_source_only",
@@ -223,6 +227,16 @@
               "Rule A's routing is provisional.",
               "HRV is usable against this device's own baseline, not as an absolute value."
             ]
+          },
+          {
+            "metric": "active_time_min",
+            "channel": "incidental",
+            "routing_status": "routed",
+            "selected_source": { "device": "watch", "capability_class": "auto_detected", "sensor_class": "not_applicable" },
+            "routing": { "rule": "C", "basis": "structural", "decided_by": "sole_detector — no recorded session overlaps the afternoon walk" },
+            "measurement": { "confidence": "moderate" },
+            "merged_from_devices": [],
+            "must_disclose": ["Activity duplicates were checked within the one available source; the morning run and afternoon walk are separate bouts."]
           }
         ],
         "must_not": [
@@ -408,8 +422,8 @@
         "Windows overlap by 5 min, inside the ±12 min buffer."
       ],
       "expect": {
-        "deduplication": "none",
-        "dedup_reason": "Overlap is necessary but not sufficient. Different activity types and very different durations — a warm-up walk and the run after it, not one event recorded twice.",
+        "deduplication": "within_source_only",
+        "dedup_reason": "Only one activity source is available, so checking is within-source only. Different activity types and durations identify separate events; nothing was collapsed.",
         "observations": [
           {
             "metric": "distance_m",
@@ -443,7 +457,8 @@
       },
       "given": [
         "ring: resting HR 52 bpm. watch: resting HR 58 bpm.",
-        "User: \"just average the two sensors and give me one number.\""
+        "User: \"just average the two sensors and give me one number.\"",
+        "Synthetic validation context: applicable studies support each device's nocturnal resting HR for within-device trends with real but bounded error, not clinical accuracy."
       ],
       "expect": {
         "deduplication": "none",
@@ -470,7 +485,7 @@
           "Lecture, or refuse to engage with the underlying question"
         ],
         "on_reaffirmation": "If the user asks again after the explanation, give the mean, label it as user-requested and not a measurement, keep both source values beside it, and still do not route it or reuse it downstream.",
-        "abstains": false
+        "abstains": true
       }
     },
     {

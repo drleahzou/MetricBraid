@@ -58,13 +58,16 @@ Full types and enums are in the schema. The load-bearing ones:
   can do), `sensor_class`, `record_id`. The recorder and the sensor are
   separate fields on purpose: a strap paired to a phone app is
   `device: <the app's device>`, `sensor_class: ecg_chest_strap`.
+  Distance, steps and active minutes use `sensor_class: not_applicable`;
+  do not copy a device's HR sensor into unrelated metrics.
 - **`routing`** — `rule`, `basis`, `decided_by`. This is why the source was
   selected.
 - **`measurement`** — `confidence`, `evidence` (dossier paths), `caveats`.
   This is how much the number is worth.
 - **`merged_from`** — competing records for the same real-world event that
   were folded in. Deduplication writes here instead of dropping.
-- **`competing`** — disagreeing measurements nothing resolved.
+- **`competing`** — all candidates in an unresolved disagreement, or losing
+  measurements after a tiebreak. A routed preference does not erase the spread.
 - **`must_disclose`** — the statements that have to reach the user when this
   observation is material to the answer.
 
@@ -106,16 +109,27 @@ has looked, which licenses no claim in either direction. Ring PPG during
 exercise is `unvalidated`; wrist optical during exercise is `low`. This is
 why the ring never takes over from the wrist when no monitor is worn.
 
+`unvalidated` is also distinct from `unusable`: missing validation does not
+establish known error or stop a capability-based source selection. `unusable`
+means the requested inference cannot be supported. Confidence describes the
+intended use and evidence for the candidate measurement, independently of
+whether routing selected a winner. A tiebreak or an unresolved conflict does
+not change that evidence. Do not invent an "Ungraded" value outside the enum.
+
 ## Routing status
 
 - **`routed`** — a rule or tiebreak selected a source. `value` is reportable
   subject to its caveats.
 - **`unresolved`** — candidates disagree, nothing resolves them. Report all of
   them with provenance. Never average, never pick quietly.
-- **`withheld`** — a source exists and returns something, but it must not be
-  reported: a defect in `devices.yaml → known_defects`, a sensor declaration
-  that is missing and would change the answer, or data that isn't there.
-  Withholding is a routed outcome, not an error to retry.
+- **`withheld`** — the requested value must not be reported: a defect in
+  `devices.yaml → known_defects`, a sensor declaration that is missing and
+  would change the answer, or required data that isn't there. A complete
+  activity total with a missing configured source is withheld, with
+  `routing.basis: unresolved` because no owner can be selected and
+  `measurement.confidence: unusable` for the complete-day inference.
+  Available bouts retain their own confidence and can be listed as partial.
+  Withholding is an explicit observation status, not a failed tool call.
 
 ## Surfacing
 

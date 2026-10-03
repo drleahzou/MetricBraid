@@ -33,6 +33,8 @@ infer hardware from which MCP servers happen to respond.
   number to a device it wasn't measured on** — say the number is unavailable
   for that device instead. Adding a dossier never promotes a device in the
   routing; it only changes what may be said about its numbers.
+  If neither general evidence nor a dossier covers the signal's use, grade it
+  `unvalidated`, not `unusable`. Its declared capability can still route it.
 
 **Two devices declaring the same class:** both `recorded_workout` → one event,
 merge by channel. Both `passive_247` → use `tiebreaks` in `devices.yaml`; if
@@ -41,7 +43,9 @@ average. A tiebreak is user preference, not evidence — say so when one decided
 the answer.
 
 **A single device is valid.** Rules still apply, all resolving to one device.
-Confidence goes *down*, not up: nothing cross-validates it.
+Always check activity duplicates within that source. Applicable validation
+still grades the measurement, but nothing cross-validates this observation;
+the absence of a competing device never makes it more accurate.
 
 ## Two confidences, never collapsed
 
@@ -64,6 +68,17 @@ The awkward combinations are the common ones: a solo-detected walk is
 **`unvalidated` is not `low`.** `low` means studied and found poor in this
 regime, so you can say how wrong it probably is. `unvalidated` means nobody
 looked, which licenses no claim in either direction.
+
+**`unvalidated` is not `unusable`.** Missing validation does not establish
+known error or prevent selecting a source. `unusable` means the requested
+inference cannot be supported. A complete daily total with a missing configured
+activity source is `withheld`, not an unresolved contest between available
+measurements; individual available bouts can still be listed as partial.
+That total has `routing.basis: unresolved` (no owner selected) and
+`measurement.confidence: unusable` for the complete-day inference. A partial
+bout's confidence does not apply to a missing total; a clear withholding
+decision does not make the ownership `structural`.
+Unresolved routing does not erase each candidate's evidence-based confidence.
 
 ## Route by capability class, not by brand
 
@@ -125,11 +140,13 @@ Measurement confidence, per signal:
 - **Sleep stages** — `low`. Do NOT present deep/REM minutes as fact.
   Documented systematic bias in both directions across generations. **Trend
   only.**
-- **HRV** — `moderate` as a trend against the user's own baseline; `unusable`
-  as an absolute value or across devices. Ring-class devices have documented
-  RMSSD underestimates (~15 ms vs ECG in the reference dossier), so the number
-  is not comparable to a clinical figure or another device. The *correlation*
-  is good, so *change* is meaningful.
+- **HRV** — with applicable validation, `moderate` for a trend against the
+  user's own baseline; `unusable` for an absolute clinical claim or cross-device
+  comparison. Reporting sourced readings separately is not a comparability
+  claim. Without applicable HRV evidence, use `unvalidated`; do not borrow the
+  reference dossier's offset or trend validation for another device.
+- **Resting HR** — grade against applicable evidence for the sensor and regime;
+  Rule A and routing resolution do not supply a default confidence.
 - **Temperature deviation and all-day stress** — `unvalidated`. No citation at
   all. Say so when leaning on them.
 
@@ -282,6 +299,8 @@ classified, report it unrouted and **do not fold it into any total or trend.**
 4. **Recorded vs auto-detected**: keep the recorded version's metrics,
    **ABSORB** the auto-detected duplicate — record the merge, then drop it
    from totals.
+   Auto-detection may capture only part of the session; different durations or
+   estimated distances alone do not establish a separate bout.
 5. **Recorded vs recorded**: still ONE event. Do not pick a single winner for
    the whole record — **merge by channel**: `event` to the recorder that
    captured it, `heart_rate` to whichever carries an `external_hr_monitor`.
@@ -295,6 +314,11 @@ classified, report it unrouted and **do not fold it into any total or trend.**
 8. Only count an auto-detected session as genuine incidental activity if it
    has **no** corresponding recorded activity in that window.
 
+Preserve the absorbed record on each metric for which it supplied a competing
+claim. A duplicate with no HR can still merge on the event channel; do not
+invent an HR merge. Collapsing duplicates within one source still counts as
+a collapse, even with no cross-source comparison.
+
 When computing daily totals, be explicit about which source contributed which
 portion, so the math can be sanity-checked.
 
@@ -305,6 +329,8 @@ portion, so the math can be sanity-checked.
   Absent both, report both values with provenance and say nothing resolved it.
 - **Preserve what lost** — an absorbed duplicate and an unresolved competitor
   both stay visible in the provenance.
+  A tiebreak's losing passive measurement stays in `competing` even when the
+  observation is `routed`; selection never erases the spread.
 - **"Selected" is not "correct."** Say "routed from X under Rule Y", not "X is
   correct."
 - **A large disagreement inside both sensors' validated regimes is a finding**,
@@ -330,6 +356,8 @@ class, sensor class) · `routing` (rule, basis, decided_by) · `measurement`
 
 The recorder and the sensor are separate fields on purpose — a strap paired to
 a ring's app is that device's record with `sensor_class: ecg_chest_strap`.
+`sensor_class` describes this metric: distance, steps and active minutes use
+`not_applicable`, even if the device also has a wrist or ring HR sensor.
 
 **Always surface:** every `must_disclose` entry; a basis of `provisional`,
 `user_preference` or `unresolved`; a confidence of `low`, `unvalidated` or
