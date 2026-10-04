@@ -360,7 +360,7 @@ There is not enough relevant evidence to know how well it performs.
 
 Those are not interchangeable.
 
-A known-imperfect measurement may sometimes be more defensible than an entirely unstudied one because at least its error characteristics are understood.
+A known-imperfect measurement may sometimes be more defensible than one without applicable accepted validation because at least its error characteristics are understood.
 
 That is why an unvalidated sensor does not automatically displace a known-imperfect sensor merely because it appears newer, more precise, or more sophisticated.
 

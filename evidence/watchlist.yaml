@@ -40,14 +40,15 @@ open_gaps:
     rule: B
     question: >-
       Is ring PPG accurate enough during exercise to beat wrist optical when
-      no chest strap is worn? All current ring HR/HRV validation is
-      nocturnal or at-rest.
+      no external HR monitor is worn? No qualifying independent exercise
+      comparison supporting that promotion has been verified here.
     closes_when: >-
       An independent, ECG-referenced comparison of ring PPG during exercise
       is published.
     until_then: >-
-      Keep the recording device's HR with a mandatory low-confidence flag.
-      Do not promote ring PPG.
+      Keep the recording device's HR. Grade against accepted, applicable
+      validation; otherwise use Rule B's wrist-intensity fallbacks and keep
+      ring exercise HR unvalidated. Do not promote ring PPG.
   - id: oura-live-activity-accuracy
     opened: 2026-08-30
     rule: B

@@ -3,6 +3,67 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-10-04 — Research watch triage and scoped HR evidence wording
+
+Reviewed the strongest candidates raised in the September evidence-watch
+issues ([initial backlog #11](https://github.com/drleahzou/MetricBraid/issues/11),
+[latest #14](https://github.com/drleahzou/MetricBraid/issues/14)) and the
+additional Apple paper supplied by the user. This is a focused review, not
+completion of every item in issues #11–#14. Pending items are not recorded as
+accepted validation, and the watch's seen-state and GitHub issues are unchanged.
+
+**Read against primary sources:**
+
+- **Manufacturer-led HR comparison:** methods, collection table and results
+  figures reviewed; recorded separately from accepted independent validation
+  in [`devices/oura.md`](devices/oura.md). No confidence or routing upgrade.
+- **DC Rainmaker's Cirqa comparison:** full article reviewed, including
+  reference straps, placement, differing exercise outcomes and affiliate
+  disclosure. Recorded in [`devices/garmin.md`](devices/garmin.md). The
+  independent workout methodology qualifies for the tester tier, but small-group
+  qualitative results do not justify a universal grade upgrade. Sleep/HRV
+  comparisons lack the clinical references needed to establish passive ordering.
+
+**Screened, pending full-text or reference-methodology review:**
+
+| Candidate | Material actually read | Outcome and remaining work |
+|---|---|---|
+| Agostinho et al. 2026, [sleep-tracker meta-analysis](https://doi.org/10.1080/15402002.2026.2673893), [PubMed 42175611](https://pubmed.ncbi.nlm.nih.gov/42175611/) | Publisher abstract and disclosures; full text requires subscription access | Abstract reports heterogeneous performance and no consistently superior device. Check included generations, bias, heterogeneity and stage results before changing sleep confidence. No change now. |
+| Tan et al. 2026, [vivosmart 5 versus Holter ECG](https://doi.org/10.1080/07420528.2026.2669593), [PubMed 42099266](https://pubmed.ncbi.nlm.nih.gov/42099266/) | Publisher abstract, funding and disclosures; full text requires subscription access | Candidate for device-specific free-living HR validation. Inspect averaging, agreement limits, missing data and activity coverage before grading; do not extrapolate to exercise peaks or other Garmin models. No change now. |
+| Jouvencel et al. 2026, [temperature around sleep onset](https://doi.org/10.1016/j.sleep.2026.109074), [PubMed 42330816](https://pubmed.ncbi.nlm.nih.gov/42330816/) | PubMed abstract and conflict statement; publisher blocked by human verification | Oura temperature patterns were compared with EEG-defined sleep onset. Chee declares Oura advisory-board membership. Review full methods and sensor/reference scope; this is not validation of nightly temperature deviation or proprietary stress. No change now. |
+| [The Quantified Scientist's Apple Recovery HRV review](https://www.youtube.com/watch?v=FpaKsB3vRKk) and other flagged videos | Watch listings; opened the HRV video, but captions/transcript were unavailable | No numerical result or methodology accepted from titles. Inspect the actual reference method, sampling and individual data before adding validation. Remaining videos and other PubMed candidates are unreviewed. |
+
+**Wording changes, without changing current routing or upgrading grades:**
+
+- Replace claims that no ring exercise study exists with the narrower fact
+  that no qualifying independent exercise validation supporting promotion has
+  been verified here. Keep the gap open.
+- Define `unvalidated` by applicable accepted evidence, not by a universal
+  claim that nobody has studied a signal. Manufacturer-led reference research
+  may be recorded as a candidate; vendor marketing stays excluded.
+- Make wrist-intensity grades explicit fallbacks. More specific accepted
+  validation must match model, generation, placement, activity, conditions and
+  reported statistic. It does not change the placement-based routing order.
+- Do not infer ring accuracy during yoga or stretching from nocturnal
+  validation. Surface disagreement, and call agreement a validated cross-check
+  only when both measurement regimes have applicable evidence.
+
+Rule A remains provisional; sleep-stage, HRV, temperature and stress grades
+remain unchanged. No default HR grade is upgraded. Historical changelog
+entries retain their original wording; this entry supersedes their statements
+about the absence of exercise research. Canonical dossiers, operating specs
+and the watchlist were aligned, and the plugin reference copies regenerated.
+The observation-contract wording, introductory README and registry comments
+were aligned too; schema fields and device configuration values are unchanged.
+
+Local verification: plugin sync, fixture/schema checks, offline grader
+self-tests, seven existing unit tests, internal Markdown links and diff
+whitespace checks passed. A focused four-case structured evaluation against
+both operating specs could not run: the local Claude CLI reported "Not logged
+in" for every case. Routing/disclosure regressions were reviewed in the diff;
+model behavior and Mode B prose remain unverified by this review. No live
+provider or personal health data was used.
+
 ## 2026-10-04 — v0.2.2: routing consistency and reliable fixture reports
 
 [PR #15](https://github.com/drleahzou/MetricBraid/pull/15) aligns the repo and

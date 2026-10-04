@@ -34,13 +34,16 @@ Device-specific figures (e.g. which watch model measured rc=0.52) are in
 [`devices/garmin.md`](devices/garmin.md), and do not transfer to another
 device.
 
-## Why this is generation-robust
+## What transfers across generations
 
-The failure mode is physical, not firmware: optical PPG at the wrist is
-corrupted by motion artifact and perfusion changes during exercise, while a
-chest strap reads the ECG signal directly. That relationship does not change
-across device generations, so — unlike Rule A — this rule does not hinge on
-which specific model is paired.
+Optical PPG remains susceptible to motion artifact and perfusion changes,
+while a chest strap reads the ECG signal directly. This supports the
+conservative placement-based routing hierarchy. It does not establish an
+unchanging error magnitude: measurement confidence must match the device model,
+generation, placement, activity, conditions and statistic actually validated.
+Use the intensity grades as fallbacks when no accepted, more specific
+validation applies. Neither manufacturer-led candidates nor abstract-only
+screening upgrades a grade.
 
 ## Scope: two channels, routed separately
 
@@ -74,15 +77,15 @@ is why the two subtypes are ranked rather than treated as interchangeable.
 ## Open gap — sessions with no external HR monitor
 
 When no external monitor (strap or armband) is present, the choice is
-between a **known-bad** number
-(wrist optical, rc≈0.52) and an **unvalidated** one (ring PPG). There is no
-study comparing ring PPG against ECG *during exercise*, so the ring cannot be
-promoted on evidence.
+between wrist optical (default `low` at effort) and ring PPG (`unvalidated`
+under the accepted exercise evidence). No qualifying independent exercise
+comparison supporting promotion of the ring has been verified here.
 
-The rule therefore keeps the recording device's HR and requires an explicit
-low-confidence flag. It does **not** hand HR to the ring. Swapping a
-measured-poor value for an unmeasured one would look like an upgrade while
-removing the ability to say how wrong it is.
+The rule keeps the recording device's HR. Apply accepted, applicable
+device-specific validation first; otherwise use the wrist-intensity fallbacks
+(`moderate` near rest, `low` at effort or during intervals), with disclosure.
+Ring exercise HR remains `unvalidated`; it does **not** inherit the wrist's
+grades or take over because the wrist reading looks poor.
 
 **Closes when:** an independent ECG-referenced comparison of ring PPG during
 exercise exists. Until then this is stated as a gap, not resolved by

@@ -10,9 +10,10 @@ describes hardware nobody wears now. These rules are only trustworthy if the
 evidence is kept honest, which is what the [changelog](CHANGELOG.md) and
 [watchlist](watchlist.yaml) are for.
 
-All citations were read against the primary source on the date recorded in
-each dossier. **Nothing here is cited from memory, or from an abstract or
-search summary alone.**
+Accepted validation was read against the primary source on the date recorded
+in each dossier. **Accuracy claims never rely on memory, an abstract or a
+search summary alone.** Candidate screening is labelled separately as pending
+full-text review and cannot support a confidence upgrade.
 
 ---
 
@@ -42,9 +43,10 @@ The previous single "verified / provisional" label could not express any of
 that, and read as though a routing decision had been scientifically validated.
 Nothing about which source wins has changed — only what the labels claim.
 
-**`unvalidated` is not `low`.** `low` means studied and found poor in this
-regime; you can say how wrong it is likely to be. `unvalidated` means nobody
-has looked, which licenses no claim in either direction.
+**`unvalidated` is not `low`.** `low` means applicable accepted evidence found
+poor performance in this regime. `unvalidated` means no applicable validation
+meeting the source-quality bar has been verified here, not that no study exists
+anywhere. Pending research and missing evidence license no accuracy claim.
 
 ## Two tiers, and why it matters
 
@@ -68,7 +70,7 @@ own.** A device with no dossier of its own gets these and nothing more.
 | Dossier | Device |
 |---|---|
 | [devices/oura.md](devices/oura.md) | Oura Ring — staging bias by generation, ~15 ms RMSSD underestimate, uncited sub-signals |
-| [devices/garmin.md](devices/garmin.md) | Garmin watches — model-specific wrist-optical figures, and why running dynamics are not a strap proxy |
+| [devices/garmin.md](devices/garmin.md) | Garmin — model-specific wrist-optical figures, newer Cirqa tester evidence, and why running dynamics are not a strap proxy |
 | [devices/TEMPLATE.md](devices/TEMPLATE.md) | **Adding your device — start here** |
 
 **A number measured on one device says nothing about another.** Where a
@@ -95,8 +97,10 @@ library/manual > photo estimate), not a research dossier.
 
 ## Every paper cited
 
-Ten studies. All independent of the manufacturers except where noted in the
-dossier.
+Ten baseline studies. All independent of the manufacturers except where noted
+in the dossier. Newer independent tester evidence and a reviewed
+manufacturer-led candidate are recorded in the device dossiers, separately
+from these baseline studies; see the [2026-10-04 review](CHANGELOG.md).
 
 ### Device-agnostic — sleep
 
@@ -139,14 +143,15 @@ dossier.
 Tracked in [watchlist.yaml](watchlist.yaml). A gap stays open until evidence
 meeting the source-quality bar closes it; it is never closed by preference.
 
-- **Ring PPG during exercise (Rule B).** With no external HR monitor, the
-  choice is a *known-bad* number (wrist optical) or an *unvalidated* one
-  (ring PPG — all ring validation is nocturnal or at-rest). The ring is
-  **not** promoted; the recorder's HR is kept with a mandatory
-  low-confidence flag.
-- **No independent head-to-head for passive signals (Rule A).** The rule says
+- **Ring PPG during exercise (Rule B).** No qualifying independent exercise
+  comparison supporting promotion over wrist optical has been verified here.
+  The ring is **not** promoted. Keep the recorder's HR and grade against
+  accepted, applicable validation; otherwise use Rule B's wrist-intensity
+  fallbacks and keep ring exercise HR `unvalidated`.
+- **No qualifying comparison establishing passive ordering (Rule A).** The rule says
   a 24/7 passive wearable is the governing source over a training watch for
-  sleep and HRV. No study compares them directly. This is **reasoned from
+  sleep and HRV. No qualifying clinical-reference comparison establishing
+  that ordering has been verified here. This is **reasoned from
   device design, not measured** — which is why Rule A's routing basis stays
   `provisional` for *every* configuration, not just the bundled one. It is
   also why a `tiebreaks.passive_247` entry is `user_preference` rather than
@@ -161,7 +166,7 @@ meeting the source-quality bar closes it; it is never closed by preference.
 It is the rule most people would assume is safest, and its routing is the
 least settled. Beyond the head-to-head gap above, current-generation staging
 replication is thin, and **temperature deviation and all-day stress have no
-citation at all** — they ride the rule as `unvalidated`.
+accepted accuracy validation for those uses here** — they remain `unvalidated`.
 
 The assistant is required to say "this is provisional" out loud whenever an
 answer leans on Rule A. That obligation is the point: a rule honest about
@@ -179,6 +184,11 @@ In strict order:
    [Marco Altini](https://marcoaltini.substack.com/))
 3. **Never** vendor marketing, spec sheets, press coverage, or uncited
    recollection
+
+Manufacturer-led research with a reference-device protocol can be recorded
+as a reviewed candidate with its conflicts and limitations; it does not meet
+the independent-validation bar by itself. Abstract-only screening stays
+pending full-text review. Neither category upgrades confidence or routing.
 
 ## How a rule changes
 

@@ -6,27 +6,26 @@ routes its HR channel using it.
 
 ## Claim
 
-In-workout heart-rate accuracy is determined by **sensing method and
-anatomical placement**, not by brand, price, or which app recorded the
-session. The ordering is stable across manufacturers because the failure
-mode is physical: optical PPG is corrupted by motion artifact and perfusion
-change, and the wrist is the worst common site for both.
+**Sensing method and anatomical placement** underpin the conservative
+in-workout HR routing hierarchy. Optical PPG is susceptible to motion artifact
+and perfusion change, especially at the wrist. That mechanism does not establish
+a fixed error or confidence grade for every model, generation and activity.
+Brand, price and the recording app are not accuracy evidence.
 
 ## The hierarchy
 
 Trust grades below are `measurement_confidence`, defined in
 [`../../spec/routed-observation.md`](../../spec/routed-observation.md).
 **`unvalidated` is not `low`**: `low` means studied and found poor in this
-regime, so you can say how wrong a number is likely to be; `unvalidated` means
-nobody has looked. That distinction is what stops an unstudied sensor being
-promoted over a known-imperfect one.
+regime; `unvalidated` means no applicable validation meeting the source-quality
+bar has been verified here. It does not mean no study exists anywhere.
 
 | Class | Method / site | Evidence | Trust |
 |---|---|---|---|
 | `ecg_chest_strap` | Electrical, chest | rc **0.99** (Etiwy), rc **0.98** (Pasadyn); used as the *criterion device* by Schweizer & Gilgen-Ammann | **Highest** |
 | `optical_armband` | Optical PPG, upper arm / forearm | ICC **0.99**, bias 0.27–0.33 bpm (Hettiarachchi); MAE **1.43 bpm**, MAPE 1.35%, CCC **1.00** (Schweizer, upper arm) | **High** |
-| `wrist_optical` | Optical PPG, wrist | rc **0.52** (Etiwy, Garmin FR235); degrades as intensity rises (Pasadyn); MAE **6.41 bpm**, CCC 0.92 (Schweizer) | **Low during exercise** |
-| `ring_ppg` | Optical PPG, finger | **No exercise validation exists** — see gap below | **`unvalidated` during exercise** |
+| `wrist_optical` | Optical PPG, wrist | rc **0.52** (Etiwy, Garmin FR235); degrades as intensity rises (Pasadyn); MAE **6.41 bpm**, CCC 0.92 (Schweizer) | **Default low during exercise**, subject to applicable device-specific validation |
+| `ring_ppg` | Optical PPG, finger | **No qualifying independent exercise validation verified here** — see gap below | **`unvalidated` under the accepted exercise evidence** |
 | `other_ble` | Earbuds, gym equipment, anything broadcasting BLE HR | No citation | **`unvalidated` — treat as undeclared** |
 
 ## Evidence
@@ -51,17 +50,26 @@ a per-device dossier:
    Polar armband against a Polar watch, in one protocol, against one
    criterion. Arm beat wrist by ~4.5× on MAE. Brand held constant; only
    placement changed.
-3. **Physical mechanism.** Motion artifact and perfusion change at the wrist
-   are anatomical facts, not firmware. A new watch generation does not
-   relocate the radial artery. This is why the hierarchy is expected to be
-   generation-robust in a way that, say, a sleep-staging algorithm is not.
+3. **Physical mechanism.** Motion artifact and perfusion change remain relevant
+   across generations, but hardware and algorithms can change their impact.
+   Placement supports the routing fallback; the error magnitude and
+   measurement confidence still require applicable validation.
+
+**Apply specific validation before the fallback.** Match device model,
+generation, placement, activity, conditions and the statistic being reported.
+Validation of a session average does not validate interval peaks or recovery
+timing. A dossier meeting the source-quality bar can support a different grade
+for that use without changing the routing hierarchy. See
+[`devices/garmin.md`](../devices/garmin.md) for newer independent tester findings
+and [`devices/oura.md`](../devices/oura.md) for a reviewed manufacturer-led
+candidate; neither review upgrades a default grade.
 
 ## The wrist-optical penalty is intensity-dependent, not constant
 
 This is easy to miss and changes what you may say about a low-intensity
 session. Both Cleveland Clinic studies report the *same* structure:
 
-- **At rest, all devices were accurate** — including wrist optical.
+- **At rest, the tested devices were accurate** — including wrist optical.
 - Accuracy **falls as intensity rises** (Pasadyn's treadmill ramp is the
   clearest demonstration; Etiwy's rc=0.52 for one wrist device is an
   *exercise* figure, not an all-conditions one).
@@ -71,12 +79,11 @@ near-resting activity (yoga, stretching, pilates, gentle walking) and
 understates how bad it gets during hard efforts and intervals. Confidence in
 a strap-less HR number should scale with the session's intensity.
 
-**A useful consequence:** at near-resting intensity, wrist optical *and*
-ring PPG are both inside regimes where they have been validated (see the
-per-device dossiers for ring HR at rest). They should broadly agree there,
-which makes a low-intensity session a genuine cross-check — and a large
-disagreement a signal worth reporting. At higher intensity the comparison
-loses its footing, because one sensor is known-bad and the other unvalidated.
+**A large low-intensity disagreement is worth reporting.** Agreement is a
+validated cross-check only when applicable evidence covers both sensors in that
+regime. Nocturnal ring validation does not establish exercise accuracy. At
+higher intensity, disclose each sensor's evidence limits; their spread alone
+does not establish which one is correct.
 
 ## Practical caveats that survive the good numbers
 
@@ -91,15 +98,15 @@ loses its footing, because one sensor is known-bad and the other unvalidated.
 
 ## Open gap — no external monitor
 
-When no external monitor is worn, the choice is between a **known-bad**
-number (`wrist_optical`) and an **unvalidated** one (`ring_ppg`). No
-ECG-referenced study of ring PPG *during exercise* exists; ring HR/HRV
-validation is nocturnal or at-rest only.
+No qualifying independent comparison supporting promotion of ring PPG over
+wrist optical during exercise has been verified here. The existence of a study
+is separate from its eligibility to change a confidence grade.
 
-**Resolution:** keep the recording device's HR with a mandatory
-low-confidence flag. Do **not** promote ring PPG. Promoting an unmeasured
-sensor over a measured-poor one removes the ability to say how wrong the
-number is, which is a downgrade disguised as an upgrade.
+**Resolution:** keep the recording device's HR. Apply accepted device-specific
+validation when it covers the use; otherwise use the wrist-intensity fallbacks
+in Rule B (`moderate` near rest, `low` at effort or during intervals). Ring
+exercise HR remains `unvalidated` under the accepted evidence. Do **not**
+promote ring PPG or infer that every current wrist sensor has the FR235's error.
 
 **Closes when:** an independent, ECG-referenced comparison of ring PPG
 during exercise is published. Tracked in [`watchlist.yaml`](../watchlist.yaml).

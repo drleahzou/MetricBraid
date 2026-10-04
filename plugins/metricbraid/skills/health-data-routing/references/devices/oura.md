@@ -34,9 +34,31 @@ All entries read against the primary source on the date shown.
 
 ## Uncited sub-signals
 
-**Temperature deviation** and **all-day stress** have **no citation**. They
-are named in Rule A's claim and ride it provisionally. Say so when leaning
-on them.
+**Temperature deviation** and **all-day stress** have **no accepted accuracy
+validation for those uses here**. They remain `unvalidated`. Research about
+sleep-onset temperature physiology is not validation of nightly temperature
+deviation or a proprietary stress score; the pending review is recorded in
+[`CHANGELOG.md`](../CHANGELOG.md).
+
+## Reviewed candidate — manufacturer-led exercise HR comparison
+
+Read 2026-10-04: [Apple's September 2026 HR study](https://www.apple.com/health/pdf/Heart_Rate_Accuracy_Study_2026.pdf),
+including Table 1 and Figures 1–3. Apple led the study; no peer-review record
+is supplied. Of 1,460 enrolled participants, 1,254 contributed paired analyses
+across devices, not 1,254 for each comparison. The reference was a Polar H10;
+Apple Watch Series 12 and Oura Ring 5 were among the tested devices. Wrist
+assignment was randomized. Oura was tested during running, cycling and HIIT,
+but not strength training. Apple reports lower overall HR error than Oura.
+
+Collection methods and sampling intervals differed; Apple used an internal
+logger and Oura HealthKit exports. Reported plots show error differences,
+not absolute per-device error. This cannot establish clinical accuracy, sleep
+or HRV superiority, or a universal placement ranking.
+
+**Outcome:** record as a reviewed candidate, not independent validation.
+Exercise evidence exists, but none qualifying to change the current rule has
+been accepted here. Ring exercise confidence stays `unvalidated`; no routing
+promotion or confidence upgrade follows.
 
 ## Contested current-generation evidence
 
