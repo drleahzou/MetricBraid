@@ -3,6 +3,23 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-10-04 — v0.2.3: scoped HR evidence claims
+
+[PR #17](https://github.com/drleahzou/MetricBraid/pull/17) records the focused
+evidence-watch review, including Apple's manufacturer-led 2026 HR comparison
+and DC Rainmaker's Cirqa testing. It corrects overbroad claims about the absence
+of ring exercise research, distinguishes pending candidates from accepted
+independent validation, and makes the existing wrist confidence grades explicit
+fallbacks for applicable device-specific evidence. The review and its remaining
+full-text and model-evaluation limitations are recorded below.
+
+The plugin manifest advances from `0.2.2` to `0.2.3` so installed plugins can
+detect the revised operating specifications and evidence references. A patch
+release is appropriate because this is a compatible clarification: the source
+hierarchy, current default confidence grades, observation schema and device
+configuration values are unchanged. This release does not establish new
+empirical validation or promote a sensor's confidence.
+
 ## 2026-10-04 — Research watch triage and scoped HR evidence wording
 
 Reviewed the strongest candidates raised in the September evidence-watch
