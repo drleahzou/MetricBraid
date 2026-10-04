@@ -105,9 +105,9 @@ biometric a device measures now or adds later. **The device declaring
 `passive_247` in `devices.yaml` is the governing source** for these signals.
 
 - **Routing basis: `provisional` — and that must be VISIBLE, not smoothed
-  over.** Two gaps the evidence does not close: (1) there is **no independent
-  head-to-head** comparing a continuously worn passive device against a
-  training watch for passive signals — "the passive sensor governs" is
+  over.** Two gaps the evidence does not close: (1) **no qualifying independent
+  clinical-reference comparison** establishing the passive-source ordering
+  has been verified here — "the passive sensor governs" is
   reasoned from device design, not measured; (2) current-generation sleep
   staging replication is thin and contested. When an answer leans on Rule A,
   say the routing is provisional.
@@ -126,8 +126,8 @@ biometric a device measures now or adds later. **The device declaring
     or its trend validation for another device.
   - *Resting HR* — grade against applicable evidence for its sensor and regime;
     no default confidence follows from Rule A or from resolving the routing.
-  - *Temperature deviation and all-day stress* — `unvalidated`. No citation at
-    all. They ride the rule; say so when leaning on them.
+  - *Temperature deviation and all-day stress* — `unvalidated`. No applicable
+    accuracy validation has been accepted here. Say so when leaning on them.
 - **Nutrition is explicitly NOT covered by this rule — see Rule D.** If a
   passive device ships meal tracking, it does not become the governing source
   for intake; at most it is a cross-check against Rule D.
@@ -258,8 +258,8 @@ brand, and never by which app started the session.**
 | `external_hr_monitor` | A dedicated HR device worn away from the wrist. Two subtypes below. | **High** |
 | ├ `ecg_chest_strap` | Electrical, reads the ECG signal directly — any BLE HR Service strap, any brand | **Highest.** rc=0.98–0.99 vs ECG; used as the *criterion* in other studies |
 | └ `optical_armband` | Optical PPG at the upper arm or forearm | **High.** MAE 1.43 bpm, MAPE 1.35%, CCC 1.00 (upper arm); ICC 0.99 across arm sites |
-| `wrist_optical` | Watch PPG at the wrist | **Low during exercise.** MAE 6.41 bpm, CCC 0.92 head-to-head; rc≈0.52 on one tested model; degrades as intensity rises |
-| `ring_ppg` | Ring PPG | **Unvalidated during exercise — no study exists.** Ring HR/HRV evidence is nocturnal/at-rest only |
+| `wrist_optical` | Watch PPG at the wrist | **Default low during exercise.** MAE 6.41 bpm, CCC 0.92 head-to-head; rc≈0.52 on one tested model. These figures do not transfer to every generation or activity |
+| `ring_ppg` | Ring PPG | **Unvalidated under the accepted exercise evidence.** No qualifying independent exercise validation has been verified here |
 | `other_ble` | Earbuds, gym equipment, anything else broadcasting BLE HR | **Unvalidated — uncited.** Treat as undeclared |
 
 **Placement, not brand, is what the evidence separates.** Optical at the arm
@@ -267,6 +267,15 @@ is a different measurement problem from optical at the wrist: less motion
 artifact, better optical coupling. An armband is *not* a downgrade from a
 chest strap for routing purposes — in a direct head-to-head against an ECG
 criterion, the armband beat the wrist by roughly 4.5× on mean absolute error.
+
+**Placement sets the conservative routing order, not a universal error size.**
+Grade measurement confidence against accepted validation for the device model,
+generation, sensor placement, activity, conditions and reported statistic
+(session average versus peaks or transitions). The table and wrist-intensity
+grades below are fallbacks when no more specific applicable validation exists.
+A device dossier may support a different measurement grade for its validated
+use; it does not change which source governs. Manufacturer-led comparisons
+and abstract-only findings pending review do not qualify for an upgrade.
 
 **Routing:**
 
@@ -281,8 +290,8 @@ criterion, the armband beat the wrist by roughly 4.5× on mean absolute error.
 3. If no external monitor was present, keep the **recording device's** HR (it
    is time-aligned and purpose-recorded), and **scale measurement confidence
    to the session's intensity.** The wrist-optical penalty is not a constant:
-   all devices were accurate **at rest**, with accuracy falling *as intensity
-   rises*. A blanket low-confidence flag overstates the problem for
+   the tested devices were accurate **at rest**, with accuracy falling
+   *as intensity rises*. A blanket low-confidence flag overstates the problem for
    near-resting sessions and understates the intensity dependence.
    - **Near-resting** (yoga, stretching, pilates, gentle walking — session avg
      HR at or near the user's resting baseline): wrist optical is inside the
@@ -297,20 +306,18 @@ criterion, the armband beat the wrist by roughly 4.5× on mean absolute error.
      sensor class. Water defeats wrist optical, and BLE/ANT+ does not transmit
      through water, so a strap cannot help unless it records onboard. Do not
      compare a swim HR against another session's.
-4. **`ring_ppg` never takes over from `wrist_optical`.** No external monitor
-   does not mean the ring governs; it means *nobody* has trustworthy
-   in-workout HR. Swapping in an unvalidated number because the
-   validated-bad one looks bad is a downgrade disguised as an upgrade —
-   `unvalidated` is not better than `low`, it is less knowable.
+4. **`ring_ppg` never takes over from `wrist_optical` under the current rule.**
+   No external monitor is not evidence that the ring is better. Keep the
+   recording device's HR; no accepted independent exercise comparison here
+   supports promoting the ring. Its exercise confidence remains `unvalidated`,
+   rather than inheriting the wrist's intensity grades.
 
-   Note the asymmetry this creates, and use it: for **near-resting** sessions
-   both sensors are inside their validated regimes (wrist optical is accurate
-   at rest; ring HR has a small measured bias overnight). So for yoga or
-   stretching the two devices should broadly **agree**, which makes them a
-   genuine cross-check. **A large disagreement on a low-intensity session is a
-   signal worth reporting**, not something to resolve by picking a winner. At
-   higher intensity the comparison loses its footing — one sensor is
-   known-bad and the other unstudied — so a disagreement there says little.
+   **A large disagreement on a low-intensity session is worth reporting.**
+   Treat agreement as a validated cross-check only when applicable evidence
+   covers both sensors in that regime; nocturnal ring validation does not
+   establish accuracy during yoga or stretching. At higher intensity, disclose
+   each sensor's evidence limits rather than treating their spread as proof
+   that one is correct.
 5. **Never average across sensor classes.**
 
 **Two caveats that survive the good numbers:** optical armbands can lag during
@@ -350,10 +357,10 @@ band, a strap and a watch both recording).
 3. **`auto_detected` on both** → whichever detected the bout owns it (Rule C).
    If both detected the same bout, deduplicate; do not sum.
 
-**Tiebreaks are user preference, not evidence** — there is no study
-establishing that one 24/7 wearable beats another for passive signals. A
-tiebreak resolves *routing* deterministically and improves *measurement
-confidence* by exactly nothing. **Say so when a tiebreak decided an answer**,
+**Tiebreaks are user preference, not evidence** — no qualifying independent
+comparison establishing a general ordering for passive signals has been
+verified here. A tiebreak resolves *routing* deterministically and improves
+*measurement confidence* by exactly nothing. **Say so when a tiebreak decided an answer**,
 and keep the losing value in the observation's `competing` list so the spread
 stays visible.
 
@@ -530,11 +537,11 @@ They move independently, and the awkward combinations are the common ones:
 | Passive signal decided by a tiebreak | `user_preference` | Unchanged by the tiebreak |
 | Two passive devices, no tiebreak | `unresolved` | Grade each candidate's intended use against evidence; report both |
 
-**`unvalidated` is not `low`.** `low` means studied and found poor in this
-regime, so you can say how wrong it is likely to be. `unvalidated` means
-nobody has looked, which licenses no claim in either direction. This
-distinction is what stops an unstudied sensor being promoted over a
-known-imperfect one.
+**`unvalidated` is not `low`.** `low` means applicable accepted evidence found
+poor performance in this regime. `unvalidated` means no applicable validation
+meeting the source-quality bar has been verified here; it does not mean no
+study exists anywhere. Neither pending research nor missing evidence licenses
+an accuracy claim or a source promotion.
 
 **`unvalidated` is not `unusable`.** Missing accuracy evidence permits no
 accuracy claim; it does not prove a measurement unfit. `unusable` means the
@@ -598,6 +605,12 @@ inherits `general/` and nothing more.
 - **Never cite a study from memory.** If a claim about device accuracy matters
   to an answer, it comes from a dossier in `evidence/` or it gets read against
   the primary source first. This is where health claims quietly fail.
+- **Separate reviewed candidates from accepted validation.** Manufacturer-led
+  research with a reference-device protocol may be recorded with its methods,
+  conflicts and limitations, but it does not satisfy the independent-validation
+  bar by itself. Record abstract-only screening as pending full-text review.
+  Neither category changes routing or measurement confidence; vendor marketing
+  remains excluded.
 - **A dossier grades measurements, not routing.** Adding evidence for a device
   never promotes it over another device; capability classes decide that.
 - **A new finding is never an automatic rule change.** If something relevant

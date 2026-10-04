@@ -65,9 +65,11 @@ The awkward combinations are the common ones: a solo-detected walk is
 `structural` + `unusable` for calories; sleep duration under Rule A is
 `provisional` + `high`; wrist HR at effort is `evidence_backed` + `low`.
 
-**`unvalidated` is not `low`.** `low` means studied and found poor in this
-regime, so you can say how wrong it probably is. `unvalidated` means nobody
-looked, which licenses no claim in either direction.
+**`unvalidated` is not `low`.** `low` means applicable accepted evidence found
+poor performance in this regime. `unvalidated` means no applicable validation
+meeting the source-quality bar has been verified here, not that no study exists
+anywhere. Pending research and missing evidence license no accuracy claim or
+source promotion.
 
 **`unvalidated` is not `unusable`.** Missing validation does not establish
 known error or prevent selecting a source. `unusable` means the requested
@@ -129,8 +131,8 @@ stress, and any other passive biometric. **The device declaring `passive_247`
 is the governing source.**
 
 **Routing basis: `provisional` — say so out loud when leaning on it.** Two
-gaps the evidence does not close: (1) there is no independent head-to-head
-comparing a 24/7 passive device against a training watch for passive signals —
+gaps the evidence does not close: (1) no qualifying independent clinical-reference
+comparison establishing the passive-source ordering has been verified here —
 that ordering is reasoned from device design, not measured; (2)
 current-generation staging replication is thin and contested.
 
@@ -147,8 +149,8 @@ Measurement confidence, per signal:
   reference dossier's offset or trend validation for another device.
 - **Resting HR** — grade against applicable evidence for the sensor and regime;
   Rule A and routing resolution do not supply a default confidence.
-- **Temperature deviation and all-day stress** — `unvalidated`. No citation at
-  all. Say so when leaning on them.
+- **Temperature deviation and all-day stress** — `unvalidated`. No applicable
+  accuracy validation has been accepted here. Say so when leaning on them.
 
 Nutrition is explicitly **not** covered by Rule A — see Rule D.
 
@@ -176,8 +178,8 @@ recorded the session.
 |---|---|---|
 | `ecg_chest_strap` | Any chest strap, any brand (any BLE HR Service strap) | **Highest** — rc=0.98–0.99 vs ECG; used as the *criterion* in other studies |
 | `optical_armband` | Optical PPG at upper arm/forearm | **High** — MAE 1.43 bpm, CCC 1.00 (upper arm); ICC 0.99 across arm sites |
-| `wrist_optical` | Watch PPG at the wrist | **Low during exercise** — MAE 6.41 bpm, CCC 0.92 head-to-head; rc≈0.52 on one tested model; worsens as intensity rises |
-| `ring_ppg` | Ring PPG | **Unvalidated during exercise** — no study exists; ring evidence is nocturnal/at-rest only |
+| `wrist_optical` | Watch PPG at the wrist | **Default low during exercise** — MAE 6.41 bpm, CCC 0.92 head-to-head; rc≈0.52 on one tested model. These figures do not transfer to every generation or activity |
+| `ring_ppg` | Ring PPG | **Unvalidated under the accepted exercise evidence** — no qualifying independent exercise validation has been verified here |
 | `other_ble` | Earbuds, gym equipment, any other BLE HR broadcaster | **Unvalidated, uncited** — treat as undeclared |
 
 The first two together are the routing class **`external_hr_monitor`**.
@@ -185,6 +187,15 @@ Placement is the variable, not brand or price: optical at the arm is a
 different accuracy regime from optical at the wrist (less motion artifact,
 better optical coupling), and beat the wrist ~4.5× on MAE in a same-brand,
 same-protocol head-to-head.
+
+Placement sets the conservative routing order, not a universal error size.
+Grade measurement confidence against accepted validation for the device model,
+generation, sensor placement, activity, conditions and reported statistic
+(session average versus peaks or transitions). The table and wrist-intensity
+grades below are fallbacks when no more specific applicable validation exists.
+A dossier may support a different grade for its validated use; it does not
+change which source governs. Manufacturer-led comparisons and abstract-only
+findings pending review do not qualify for an upgrade.
 
 Routing:
 1. If any overlapping record has an `external_hr_monitor` (**either**
@@ -196,7 +207,7 @@ Routing:
    reference standard the armband is validated against.
 3. If no external monitor, keep the **recording device's** HR and **scale
    measurement confidence to intensity** — the wrist-optical penalty is not
-   constant. Both ECG studies found all devices accurate *at rest*, with
+   constant. Both ECG studies found the tested devices accurate *at rest*, with
    accuracy falling as intensity rises; rc≈0.52 is an *exercise* figure.
    - *Near-resting* (yoga, stretching, pilates, gentle walking): `moderate` —
      wrist optical is inside its validated-good regime. Report normally; note
@@ -209,16 +220,18 @@ Routing:
      defeats wrist optical, and BLE/ANT+ does not transmit through water, so a
      strap cannot help unless it records onboard. Never compare a swim HR
      against another session's.
-4. **`ring_ppg` never takes over from `wrist_optical`.** No monitor does not
-   mean the ring wins — it means nobody has trustworthy in-workout HR.
-   Swapping a measured-poor number for an unmeasured one is a downgrade
-   disguised as an upgrade.
+4. **`ring_ppg` never takes over from `wrist_optical` under the current rule.**
+   No monitor is not evidence that the ring is better. Keep the recording
+   device's HR; no accepted independent exercise comparison here supports
+   promoting the ring. Its exercise confidence remains `unvalidated`, rather
+   than inheriting the wrist's intensity grades.
 
-   The asymmetry is usable: at near-resting intensity both sensors are inside
-   validated regimes, so they should broadly agree, which makes a
-   low-intensity session a genuine cross-check. **A large disagreement there
-   is a signal worth reporting**, not something to resolve by picking a
-   winner. At higher intensity the comparison loses its footing.
+   **A large low-intensity disagreement is worth reporting.** Treat agreement
+   as a validated cross-check only when applicable evidence covers both
+   sensors in that regime; nocturnal ring validation does not establish
+   accuracy during yoga or stretching. At higher intensity, disclose each
+   sensor's evidence limits rather than treating the spread as proof of a
+   winner.
 5. **Never average across sensor classes.**
 
 Armbands lag on rapid HR transitions and are placement-sensitive, so a chest
@@ -388,6 +401,12 @@ impossible invariance), tell the user, and record it in `devices.yaml`.
 - **Never cite a study from memory.** Accuracy claims come from a dossier in
   `references/` or get read against the primary source first. This is where
   health claims quietly fail.
+- **Separate reviewed candidates from accepted validation.** Manufacturer-led
+  research with a reference-device protocol may be recorded with its methods,
+  conflicts and limitations, but does not satisfy the independent-validation
+  bar by itself. Abstract-only screening stays pending full-text review.
+  Neither category changes routing or measurement confidence; vendor marketing
+  remains excluded.
 - **Source-quality bar, in order:** peer-reviewed validation studies (vs
   polysomnography for sleep, vs ECG for HR/HRV) > independent testers with
   published reference-device methodology > **never** vendor marketing or spec

@@ -103,11 +103,12 @@ Every combination is reachable, and the awkward ones are the common ones:
   applies. `value` stays `null`, `competing` holds both, and the answer says
   so.
 
-`unvalidated` is not `low`. `low` means studied and found poor in this
-regime — you can say how wrong it is likely to be. `unvalidated` means no one
-has looked, which licenses no claim in either direction. Ring PPG during
-exercise is `unvalidated`; wrist optical during exercise is `low`. This is
-why the ring never takes over from the wrist when no monitor is worn.
+`unvalidated` is not `low`. `low` means applicable accepted evidence found poor
+performance in this regime. `unvalidated` means no applicable validation meeting
+the source-quality bar has been verified here, not that no study exists anywhere.
+Ring exercise HR remains `unvalidated` under the accepted evidence; wrist HR
+defaults to `low` at effort unless accepted, more specific validation applies.
+Pending research does not upgrade confidence or promote the ring over the wrist.
 
 `unvalidated` is also distinct from `unusable`: missing validation does not
 establish known error or stop a capability-based source selection. `unusable`

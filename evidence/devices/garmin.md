@@ -1,4 +1,4 @@
-# Device dossier — Garmin (watches)
+# Device dossier — Garmin
 
 **Device-specific. These numbers do NOT transfer to other devices**, and note
 they were measured on older models than most users will own. For the
@@ -6,7 +6,8 @@ mechanism that *does* generalize, see
 [`general/hr-sensor-placement.md`](../general/hr-sensor-placement.md).
 
 Declared capabilities: `recorded_workout`, `auto_detected`, `passive_247`.
-HR sensor: `wrist_optical`.
+HR sensor: `wrist_optical` for wrist-worn devices; declare placement separately
+for an arm-worn sensor.
 
 ## Evidence
 
@@ -18,18 +19,39 @@ HR sensor: `wrist_optical`.
 
 ## What these numbers oblige
 
-- **In-workout HR without an external monitor is low-confidence.** Say it in
-  words; do not report a bare number. rc=0.52 means roughly half the
-  variance is unexplained.
+- **In-workout HR without an external monitor uses the Rule B fallbacks**
+  unless accepted, applicable device-specific validation supports a different
+  grade. Default wrist confidence is `moderate` near rest and `low` at effort
+  or during intervals. Disclose weak confidence; do not report a bare number.
 - **Do not treat rc=0.52 as this generation's figure.** It was measured on a
   Forerunner 235 (2015). Newer optical sensors are likely better — but
   "likely better" is not a citation, and no independent current-generation
-  figure has been verified here. The *direction* (wrist optical degrades
-  under motion) is mechanism-based and generation-robust; the *magnitude*
-  is not.
+  quantitative error estimate has been verified here. Susceptibility to motion
+  artifact persists across generations; the error magnitude does not transfer.
 - **Event data is not in question.** GPS, pace, distance, duration, power and
   cadence are what a recording watch is for, and nothing above challenges
   them. Rule B's event channel stands independently of the HR channel.
+
+## Newer independent tester evidence — Cirqa
+
+Read 2026-10-04: [DC Rainmaker's 2026-08-03 accuracy comparison](https://www.dcrainmaker.com/2026/08/accuracy-deep-dive-garmin-cirqa-whoop-fitbit-air-amazfit-helio-polar-loop-testing.html).
+Workout HR was compared simultaneously against Polar H9 or Garmin HRM-600
+chest straps, with Cirqa on wrist and bicep. This meets the independent-tester
+methodology tier. The article declares affiliate revenue; hardware provision
+is not specified in the reviewed article. Findings are qualitative examples
+from a small group, not population error estimates.
+
+Cirqa wrist HR tracked well in several sessions but struggled in cooler
+cycling and repeated running intervals; another tester had better interval
+results. Bicep placement generally performed better. This supports retaining
+placement and conditions as relevant, without transferring an old watch's
+error to every newer device. **No default confidence grade is upgraded.**
+
+Sleep timing used personal estimates; nightly HRV comparisons lacked a
+reliable ECG reference. Those comparisons do not establish sleep-stage
+accuracy, absolute HRV comparability or a passive-source ranking. The newer
+Holter-validation paper remains pending full-text review in
+[`CHANGELOG.md`](../CHANGELOG.md).
 
 ## Implementation notes (not evidence)
 

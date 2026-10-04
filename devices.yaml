@@ -27,7 +27,8 @@
 #   other_ble        Earbuds, gym equipment.  Unvalidated — treated as undeclared.
 #
 # These are MEASUREMENT confidence grades, and `unvalidated` is not `low`:
-# low means studied and found poor, unvalidated means nobody has looked.
+# low means studied and found poor in the applicable regime; unvalidated means
+# no applicable validation meeting the source-quality bar is verified here.
 #
 # IMPORTANT: entries below declare CAPABILITIES (how a device is worn, what it
 # records) — these are checkable facts. They do NOT confer accuracy claims.

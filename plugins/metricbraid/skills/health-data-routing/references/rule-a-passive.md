@@ -12,7 +12,8 @@ supports that use, and `unusable` for an absolute clinical claim or a cross-devi
 comparison. Without applicable HRV validation, confidence is `unvalidated`;
 the reference device's trend evidence cannot be transferred to an unstudied
 device. Reporting separate sourced readings does not claim comparability.
-Temperature deviation and all-day stress are `unvalidated` — no citation at all.
+Temperature deviation and all-day stress are `unvalidated` — no applicable
+accuracy validation has been accepted here.
 
 Both dimensions, and why they move separately, are defined in
 [`routed-observation.md`](routed-observation.md).
@@ -55,9 +56,9 @@ are about *routing* — which class of device should own the signal — not abou
 whether the underlying measurements are any good. The measurement side is
 separately graded above, and is in better shape than the routing side.
 
-1. **No independent head-to-head between a 24/7 passive wearable and a
-   training watch for passive signals.** The rule says the passive wearable
-   *is the governing source over a training watch*; the studies above
+1. **No qualifying independent clinical-reference comparison establishing the
+   passive-source ordering has been verified here.** The rule says the passive
+   wearable *is the governing source over a training watch*; the studies above
    validate Oura against clinical references (PSG/ECG) but do not compare it to a
    Garmin watch's nightly sleep/HRV. A Garmin watch also produces these signals,
    so "wins over" is currently reasoned from device design + the exercise-HR
@@ -70,7 +71,12 @@ separately graded above, and is in better shape than the routing side.
    2024), so it is not yet cited as settled here.
 
 Additionally: **temperature deviation** and **all-day stress** are named in the
-claim but have **no citation** yet — they ride on the rule provisionally.
+claim but have **no accepted accuracy validation for those uses here**.
+The 2026 temperature paper is pending full-text review; sleep-onset physiology
+does not itself establish the accuracy of nightly temperature deviation.
+Newer independent tester comparisons lack a clinical reference for sleep and
+nightly HRV, so they do not close the routing gap. See
+[`CHANGELOG.md`](CHANGELOG.md) for the 2026-10-04 review and access limits.
 
 Routing basis moves from `provisional` to `evidence_backed` when (1) a
 current-generation independent passive comparison between a 24/7 ring-class
