@@ -3,6 +3,45 @@
 Every accepted change to the routing model lands here — including quarterly
 reviews that conclude "no change".
 
+## 2026-10-04 — v0.2.2: routing consistency and reliable fixture reports
+
+[PR #15](https://github.com/drleahzou/MetricBraid/pull/15) aligns the repo and
+plugin operating specifications with the routed-observation contract. This is
+a clarification of routing and evidence handling, not new empirical validation.
+
+- **Deduplication:** clarify collapse versus within-source checking, recognise
+  partial auto-detections of recorded sessions, and retain genuinely separate
+  bouts. An absorbed record contributes merge provenance only for metrics it
+  actually supplied.
+- **Confidence:** missing applicable validation is `unvalidated`, not evidence
+  of an `unusable` measurement, and does not prevent capability-based routing.
+  HRV trend confidence requires applicable within-device validation. A single
+  device retains that validation while lacking a second source to cross-check it.
+- **Conflict handling:** preserve losing measurements after a tiebreak and
+  keep routing authority separate from measurement confidence. An incomplete
+  daily activity total is withheld with unresolved ownership and unusable
+  confidence for the complete-day inference; available bouts remain partial.
+- **Provenance:** use metric-specific sensor classes rather than copying a
+  device's heart-rate sensor into distance, steps or active minutes.
+- **Evaluation:** define the batch deduplication, abstention and competitor
+  fields explicitly, correct four contradictory or underspecified fixtures,
+  and label supplied validation context as fictional. Revised scores are not
+  an unchanged-suite comparison.
+- **Reports:** create missing JSON-report directories before model calls,
+  reject existing or unwritable destinations, and save each completed spec.
+  Seven offline regressions cover report preservation and contract invariants;
+  the grader now tests mutations across the reported failure classes.
+
+Both synthetic spec evaluations on the published routing commit passed all
+12 cases each (358/358 assertions overall). Offline checks and PR/main CI also
+passed. Model responses can vary, and disclosure wording still requires human
+review; live device connections and real health data were not exercised.
+
+Schema fields, types and enum values remain unchanged, as do dependencies,
+runtime integration settings and credentials. Affected plugin reference copies
+were regenerated. The plugin manifest advances from `0.2.1` to `0.2.2` so
+installed plugins can detect this update.
+
 ## 2026-08-31 — Status model split; provenance made structural
 
 A refactor of how the model *describes* itself. **No verdict changed and no
