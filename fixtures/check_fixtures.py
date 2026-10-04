@@ -14,6 +14,8 @@ Checks:
   4. The disclosure rule from CLAUDE.md: anything provisional, preference-
      decided, unresolved, weakly measured, withheld or merged must carry at
      least one must_disclose entry.
+  5. Batch abstention agrees with the requested observations' routing status.
+  6. A duplicate collapse is recorded in merge provenance, and vice versa.
 
 Usage:
     python3 fixtures/check_fixtures.py          # check, exit non-zero on failure
@@ -33,6 +35,8 @@ EXAMPLES = sorted((ROOT / "spec" / "examples").glob("*.json"))
 
 WEAK_CONFIDENCE = {"low", "unvalidated", "unusable"}
 SOFT_BASIS = {"provisional", "user_preference", "unresolved"}
+# Batch evaluation vocabulary; these are not fields on a routed observation.
+DEDUPLICATION = ("collapse", "within_source_only", "none")
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -133,6 +137,16 @@ def check_fixtures(enums) -> list[dict]:
             fail(where, "no must_not list — a fixture has to say what failure looks like")
         if "abstains" not in expect:
             fail(where, "does not state whether the system abstains")
+        elif expect["abstains"] is not any(
+            o.get("routing_status") != "routed" for o in expect.get("observations", [])
+        ):
+            fail(where, "abstains must be true exactly when a requested metric is not routed")
+
+        if expect.get("deduplication") not in DEDUPLICATION:
+            fail(where, "deduplication is not in the batch evaluation vocabulary")
+        merged = any(o.get("merged_from_devices") for o in expect.get("observations", []))
+        if merged != (expect.get("deduplication") == "collapse"):
+            fail(where, "collapse must agree with the recorded duplicate provenance")
 
         competing = expect.get("competing_preserved")
         for i, obs in enumerate(expect.get("observations", [])):

@@ -81,7 +81,7 @@ The reasoning connecting evidence to routing decisions:
 
 | Rule | Covers | Routing basis | Measurement confidence | Dossier |
 |---|---|---|---|---|
-| **A** | Passive 24/7 signals — sleep, HRV, resting HR, temperature, stress | 🟡 `provisional` — two named gaps | Duration `high` · staging `low` · HRV `moderate` as trend · temperature and stress `unvalidated` | [rule-a-passive.md](rule-a-passive.md) |
+| **A** | Passive 24/7 signals — sleep, HRV, resting HR, temperature, stress | 🟡 `provisional` — two named gaps | Duration `high` · staging `low` · HRV trends `moderate` with applicable validation, `unvalidated` without it · temperature and stress `unvalidated` | [rule-a-passive.md](rule-a-passive.md) |
 | **B** `event` | GPS, pace, distance, power, cadence, load | 🟢 `structural` — usually the only record carrying them | `high` | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
 | **B** `heart_rate` | In-workout HR | 🟢 `evidence_backed` — cited placement hierarchy | Set by sensor class and intensity: `high` → `unusable` | [rule-b-recorded-workouts.md](rule-b-recorded-workouts.md) |
 | **C** | Incidental auto-detected activity | 🟢 `structural` — sole detector, logically forced | Steps `moderate` (≈9% low) · energy `unusable` | [rule-c-incidental.md](rule-c-incidental.md) |

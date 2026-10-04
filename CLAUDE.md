@@ -75,6 +75,10 @@ changes what you may *say*, not whether you may route.
 - **Do not transfer a device-specific number to a device it wasn't measured
   on.** One device's RMSSD offset or deep-sleep bias is not another's. Say
   what the general evidence supports and name the absence.
+- If neither applicable general evidence nor a device dossier covers a
+  signal's use, measurement confidence is `unvalidated`, not `unusable`.
+  The source can still be routed; missing validation does not revoke its
+  declared capability or establish that its measurement is wrong.
 
 ## ROUTING RULES
 
@@ -114,12 +118,14 @@ biometric a device measures now or adds later. **The device declaring
   - *Sleep stages* — `low`. Do NOT present deep/REM minutes as fact.
     Documented systematic bias in both directions across generations. Trend
     only, and say so.
-  - *HRV* — `moderate` as a trend against the user's own baseline;
-    `unusable` as an absolute value or as a cross-device comparison. Ring-class
-    devices have documented RMSSD underestimates (~15 ms vs ECG in the
-    reference configuration's dossier), so the number is not comparable to a
-    clinical figure or to another device. The correlation is good, so *change*
-    is meaningful.
+  - *HRV* — where applicable validation supports it, `moderate` as a trend
+    against the user's own baseline; `unusable` for an absolute clinical claim
+    or a cross-device comparison. Reporting separate sourced readings is not
+    a claim that they are comparable. With no applicable HRV evidence, use
+    `unvalidated`; do not borrow the reference dossier's ~15 ms RMSSD offset
+    or its trend validation for another device.
+  - *Resting HR* — grade against applicable evidence for its sensor and regime;
+    no default confidence follows from Rule A or from resolving the routing.
   - *Temperature deviation and all-day stress* — `unvalidated`. No citation at
     all. They ride the rule; say so when leaning on them.
 - **Nutrition is explicitly NOT covered by this rule — see Rule D.** If a
@@ -357,10 +363,10 @@ One device is a valid configuration. Rules A/B/C still apply — they just all
 resolve to the same device, and the deduplication step is a no-op *across*
 sources (still run the within-source duplicate check).
 
-Nothing is cross-validated, so **confidence is lower, not higher**: there is
-no second record to catch an anomaly, and no disagreement to surface. Say that
-when it matters. Do not present a single-source number as more certain because
-nothing contradicted it.
+Nothing is cross-validated: there is no second record to catch an anomaly or
+surface a disagreement. Say that when it matters. Applicable measurement
+validation still holds; do not change its grade merely because a second device
+is absent, or present it as more certain because nothing contradicted it.
 
 ## DEDUPLICATION (critical — do this before any analysis)
 
@@ -375,6 +381,8 @@ nothing contradicted it.
   real-world event. Keep the recorded version's metrics and ABSORB the
   auto-detected entry — record it in `merged_from` with disposition
   `absorbed`, then drop it from totals.
+  Auto-detection can capture only part of the recorded session: different
+  durations or estimated distances alone do not establish a separate bout.
 - **Case 2 — recorded vs recorded**: two recorded sessions that overlap are
   still ONE event. Do not pick a single winner for the whole record — **merge
   by channel**: `event` to the recorder that captured it (or the
@@ -399,6 +407,9 @@ nothing contradicted it.
   harder to notice.
 - Only count an auto-detected session as genuine incidental activity if it has
   no corresponding recorded activity in that time window.
+- An absorbed record appears in the provenance of each metric it actually
+  contributed a competing claim for. Do not invent an HR merge for a duplicate
+  that supplied no HR; it may still be absorbed on the event channel.
 - When calculating daily totals (calories, active time, steps), be explicit
   about which source contributed which portion, so the user can sanity-check
   the math if a total looks off.
@@ -451,12 +462,14 @@ what is material. The full schema and worked examples are in
 | `routing` | `rule` (A/B/C/D), `basis`, `decided_by` — why this source |
 | `measurement` | `confidence`, `evidence` (dossier paths), `caveats` — what the number is worth |
 | `merged_from` | Records absorbed for the same event, with disposition |
-| `competing` | Disagreeing values nothing resolved |
+| `competing` | All unresolved candidates, or the losing values after a tiebreak |
 | `must_disclose` | Statements that have to reach the user when this observation is material |
 
 **The recorder and the sensor are separate fields on purpose.** A strap paired
 to a ring's app is `device:` the ring's record, `sensor_class:
 ecg_chest_strap`. Collapsing them is how brand creeps back into routing.
+`sensor_class` belongs to the metric: use `not_applicable` for distance, steps
+and active minutes, rather than copying the device's HR sensor onto them.
 
 A worked example — one recorded run with an overlapping auto-detection and a
 declared chest strap produces two observations:
@@ -514,13 +527,29 @@ They move independently, and the awkward combinations are the common ones:
 | HR from a wrist sensor at effort | `evidence_backed` — the hierarchy is cited | `low` — the same citation says so |
 | Sleep duration under Rule A | `provisional` — the ordering is reasoned | `high` — duration is well validated |
 | Passive signal decided by a tiebreak | `user_preference` | Unchanged by the tiebreak |
-| Two passive devices, no tiebreak | `unresolved` | Ungraded — report both |
+| Two passive devices, no tiebreak | `unresolved` | Grade each candidate's intended use against evidence; report both |
 
 **`unvalidated` is not `low`.** `low` means studied and found poor in this
 regime, so you can say how wrong it is likely to be. `unvalidated` means
 nobody has looked, which licenses no claim in either direction. This
 distinction is what stops an unstudied sensor being promoted over a
 known-imperfect one.
+
+**`unvalidated` is not `unusable`.** Missing accuracy evidence permits no
+accuracy claim; it does not prove a measurement unfit. `unusable` means the
+requested inference cannot be supported, such as an absolute HRV comparison
+or a daily total whose configured activity source is missing. Withhold that
+total (`routing_status: withheld`); a lack of candidates is not a competing
+sensor disagreement. Individual available bouts may still be listed as partial.
+For that missing-source total, `routing.basis` is `unresolved` because no
+owner can be selected, and `measurement.confidence` is `unusable` for the
+requested complete-day inference. Do not inherit a partial bout's confidence
+or use `structural` merely because the decision to withhold was clear.
+
+An unresolved routing decision does not erase measurement confidence. Grade
+the candidates for the intended use; do not turn missing routing authority
+into a claim that the sensors are inaccurate. A single source still inherits
+its applicable validation, while lacking cross-validation for this observation.
 
 Never describe a measurement as reliable because its routing was certain, or a
 routing as sound because the measurement was well studied.

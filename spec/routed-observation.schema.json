@@ -101,7 +101,7 @@
     },
     "competing": {
       "type": "array",
-      "description": "Disagreeing measurements that no rule resolved. Populated when routing_status is 'unresolved'. Never averaged, never quietly dropped.",
+      "description": "All disagreeing candidates when routing_status is 'unresolved', or losing measurements after a user_preference tiebreak even when the observation is 'routed'. Never averaged, never quietly dropped.",
       "items": {
         "type": "object",
         "required": ["device", "value"],
@@ -133,7 +133,7 @@
     },
     "sensor_class": {
       "enum": ["ecg_chest_strap", "optical_armband", "wrist_optical", "ring_ppg", "other_ble", "unspecified", "not_applicable"],
-      "description": "unspecified = the sensor is undeclared for this activity type, which is treated as unmonitored for confidence. not_applicable = the channel has no HR sensor behind it."
+      "description": "unspecified = the sensor is undeclared for this activity type, which is treated as unmonitored for confidence. not_applicable = this metric has no HR sensor behind it: use for distance, steps and active minutes even if the device also declares an HR sensor."
     },
     "rule": {
       "enum": ["A", "B", "C", "D"],
@@ -141,15 +141,15 @@
     },
     "routing_basis": {
       "enum": ["structural", "evidence_backed", "provisional", "user_preference", "unresolved"],
-      "description": "structural: forced by the shape of the data, no accuracy contest needed. evidence_backed: a cited dossier establishes the ordering. provisional: reasoned but not measured, with a named open gap. user_preference: a devices.yaml tiebreak decided it, which is preference not evidence. unresolved: nothing decided it."
+      "description": "structural: ownership forced by the shape of the data, no accuracy contest needed. evidence_backed: a cited dossier establishes the ordering. provisional: reasoned but not measured, with a named open gap. user_preference: a devices.yaml tiebreak decided it, which is preference not evidence. unresolved: no owner selected, including a withheld complete activity total with missing required source data. A clear decision to withhold is not structural ownership."
     },
     "measurement_confidence": {
       "enum": ["high", "moderate", "low", "unvalidated", "unusable"],
-      "description": "high: validated against a clinical reference for this use. moderate: real but bounded error, usable as a trend. low: known-poor in this regime, state in words, never as a bare number. unvalidated: no study covers this sensor in this regime; absence of evidence, not evidence of error. unusable: do not build a conclusion on it."
+      "description": "high: validated against a clinical reference for this use. moderate: real but bounded error, usable as a trend. low: known-poor in this regime, state in words, never as a bare number. unvalidated: no applicable study covers this sensor and intended use; absence of evidence, not evidence of error, and does not prevent source selection. unusable: the requested inference cannot be supported; do not build a conclusion on it. A complete activity total with missing required source data is unusable for that inference, even if available partial bouts are moderate. Grade independently of routing status or preference."
     },
     "routing_status": {
       "enum": ["routed", "unresolved", "withheld"],
-      "description": "routed: a rule or tiebreak selected a source. unresolved: nothing selected one — either candidates disagree with no rule or tiebreak to resolve them, in which case all of them are reported and preserved in `competing`, or no rule applies to the metric at all, which must be said in so many words. withheld: a source exists and returns something, but it must not be reported (known defect, undeclared sensor that would change the answer, missing data)."
+      "description": "routed: a rule or tiebreak selected a source. unresolved: candidates disagree without a rule or tiebreak, or no rule fits the metric; preserve the candidates and explain. withheld: the requested number cannot be reported due to a known defect, undeclared sensor or missing required data. A complete activity total with a missing configured source is withheld, not an unresolved conflict; available partial records may still be listed."
     },
     "disposition": {
       "enum": ["absorbed", "duplicate_collapsed", "superseded_by_channel"],

@@ -6,7 +6,8 @@ you whether an assistant reading the spec actually routes a session correctly �
 that behaviour lives in prose, so a prompt edit or a model change can loosen a
 rule with nothing failing.
 
-This runner closes that gap deterministically. Each case is put to a headless
+This runner grades that behaviour deterministically; model replies can still
+vary. Each case is put to a headless
 `claude -p` session carrying only the spec, the case's `devices.yaml` and its
 candidate records, with every tool and MCP server disabled. The answer comes
 back as JSON constrained by a schema built from
@@ -49,12 +50,32 @@ SPEC_SOURCES = {
     "plugin": ROOT / "plugins" / "metricbraid" / "skills" / "health-data-routing" / "SKILL.md",
 }
 
-DEDUPLICATION = ["collapse", "within_source_only", "none"]
-
 # Mirrors the disclosure invariant in check_fixtures.py. Kept in sync by hand
 # is exactly the failure this repo dislikes, so import it instead.
 sys.path.insert(0, str(ROOT / "fixtures"))
-from check_fixtures import SOFT_BASIS, WEAK_CONFIDENCE  # noqa: E402
+from check_fixtures import DEDUPLICATION, SOFT_BASIS, WEAK_CONFIDENCE  # noqa: E402
+
+DEDUPLICATION_DESCRIPTION = (
+    "collapse: at least one duplicate event was absorbed or merged, within or "
+    "across sources; takes precedence over within_source_only. "
+    "within_source_only: activity records or an activity-total request require "
+    "duplicate checking, only one source is available, and no duplicate was "
+    "collapsed. none: no collapse and either no activity deduplication is "
+    "relevant or cross-source checking is possible. Passive measurement "
+    "disagreement is not event duplication."
+)
+ABSTAINS_DESCRIPTION = (
+    "True exactly when any requested observation has routing_status unresolved "
+    "or withheld. Refusing to invent a routed average counts as abstention from "
+    "a single routed value, even while reporting both values helpfully. Missing "
+    "accuracy evidence alone does not prevent selecting a source."
+)
+COMPETING_DESCRIPTION = (
+    "Device ids whose disagreeing values remain visible: all candidates in an "
+    "unresolved conflict, or the losing candidates after a tiebreak. A tiebreak "
+    "does not erase the losing measurement. Absorbed event duplicates belong "
+    "in merged_from_devices instead."
+)
 
 
 # --------------------------------------------------------------------------
@@ -78,7 +99,7 @@ def build_response_schema() -> dict:
             "metric": {"type": "string",
                        "description": "Exactly one of the metric names you were asked to route."},
             "channel": {"enum": enum("channel")},
-            "routing_status": {"enum": enum("routing_status")},
+            "routing_status": defs["routing_status"],
             "selected_source": {
                 "type": ["object", "null"],
                 "additionalProperties": False,
@@ -87,8 +108,8 @@ def build_response_schema() -> dict:
                 "properties": {
                     "device": {"type": "string",
                                "description": "The device id as declared in devices.yaml."},
-                    "capability_class": {"enum": enum("capability_class")},
-                    "sensor_class": {"enum": enum("sensor_class")},
+                    "capability_class": defs["capability_class"],
+                    "sensor_class": defs["sensor_class"],
                 },
             },
             "routing": {
@@ -97,7 +118,7 @@ def build_response_schema() -> dict:
                 "required": ["rule", "basis", "decided_by"],
                 "properties": {
                     "rule": {"enum": enum("rule")},
-                    "basis": {"enum": enum("routing_basis")},
+                    "basis": defs["routing_basis"],
                     "decided_by": {"type": "string",
                                    "description": "The specific mechanism that decided it, named."},
                 },
@@ -106,7 +127,7 @@ def build_response_schema() -> dict:
                 "type": "object",
                 "additionalProperties": False,
                 "required": ["confidence"],
-                "properties": {"confidence": {"enum": enum("measurement_confidence")}},
+                "properties": {"confidence": defs["measurement_confidence"]},
             },
             "merged_from_devices": {
                 "type": "array",
@@ -126,13 +147,14 @@ def build_response_schema() -> dict:
         "additionalProperties": False,
         "required": ["deduplication", "abstains", "competing_preserved", "observations"],
         "properties": {
-            "deduplication": {"enum": DEDUPLICATION},
+            "deduplication": {"enum": list(DEDUPLICATION),
+                              "description": DEDUPLICATION_DESCRIPTION},
             "abstains": {"type": "boolean",
-                         "description": "True if you decline to give a single number for any metric."},
+                         "description": ABSTAINS_DESCRIPTION},
             "competing_preserved": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Device ids whose disagreeing values you preserved rather than resolved.",
+                "description": COMPETING_DESCRIPTION,
             },
             "observations": {"type": "array", "items": observation},
         },
@@ -144,8 +166,9 @@ def build_response_schema() -> dict:
 # --------------------------------------------------------------------------
 
 PROMPT_TEMPLATE = """\
-This is a routing exercise against the spec in your context. Everything you
-need is below — no tools, no integrations, nothing to look up.
+This is a synthetic routing exercise, not real provider data. Everything you
+need is below — no tools, no integrations, nothing to look up. Any validation
+context supplied below is fictional test evidence, not a real device dossier.
 
 ## devices.yaml
 
@@ -153,7 +176,7 @@ need is below — no tools, no integrations, nothing to look up.
 {config}
 ```
 
-## Records the integrations returned
+## Synthetic observations and context
 
 {given}
 
@@ -166,9 +189,11 @@ whether it routes at all, which source governs it, under which rule and on what
 basis, how far the measurement itself can be trusted, which competing records
 were folded in, and what has to be disclosed to the user.
 
-Then state, for the set as a whole, whether deduplication collapsed anything,
-whether you are abstaining from a single number for any metric, and which
-devices' disagreeing values you are preserving rather than resolving.
+Use these batch output definitions, independently of measurement confidence:
+
+- deduplication: {deduplication}
+- abstains: {abstains}
+- competing_preserved: {competing}
 
 Answer only with the structured object.
 """
@@ -180,6 +205,9 @@ def build_prompt(case: dict) -> str:
         config=json.dumps(case["config"], indent=2),
         given="\n".join(f"- {line}" for line in case["given"]),
         metrics=", ".join(f"`{m}`" for m in metrics),
+        deduplication=DEDUPLICATION_DESCRIPTION,
+        abstains=ABSTAINS_DESCRIPTION,
+        competing=COMPETING_DESCRIPTION,
     )
 
 
@@ -402,16 +430,33 @@ def self_test(cases: list[dict]) -> int:
             problems.append(f"{case['id']}: own expectations do not grade clean — "
                             + "; ".join(c["assertion"] for c in failed))
 
-        # Flip the one thing every case has: hand the first observation to a
-        # device that did not win it.
-        mutated = json.loads(json.dumps(ideal))
-        first = mutated["observations"][0]
-        first["selected_source"] = {"device": "impostor",
-                                    "capability_class": "self_reported",
-                                    "sensor_class": "unspecified"}
-        first["routing_status"] = "routed"
-        if all(c["ok"] for c in grade(case, mutated)):
-            problems.append(f"{case['id']}: a wrongly-routed answer still passed")
+        # Each reported failure class must still be caught independently.
+        for field in ("selected_source", "deduplication", "abstains",
+                      "confidence", "merged_from", "competing_preserved"):
+            mutated = json.loads(json.dumps(ideal))
+            first = mutated["observations"][0]
+            if field == "selected_source":
+                first["selected_source"] = {"device": "impostor",
+                                            "capability_class": "self_reported",
+                                            "sensor_class": "unspecified"}
+                first["routing_status"] = "routed"
+            elif field == "deduplication":
+                mutated[field] = next(v for v in DEDUPLICATION if v != ideal[field])
+            elif field == "abstains":
+                mutated[field] = not ideal[field]
+            elif field == "confidence":
+                confidence = first["measurement"]["confidence"]
+                first["measurement"]["confidence"] = (
+                    "unusable" if confidence != "unusable" else "unvalidated")
+            elif field == "merged_from":
+                first["merged_from_devices"] = (
+                    [] if first["merged_from_devices"] else ["impostor"])
+            else:
+                if "competing_preserved" not in expect:
+                    continue
+                mutated[field] = [] if ideal[field] else ["impostor"]
+            if all(c["ok"] for c in grade(case, mutated)):
+                problems.append(f"{case['id']}: a wrong {field} still passed")
 
     for p in problems:
         print(f"FAIL     {p}")
@@ -420,8 +465,18 @@ def self_test(cases: list[dict]) -> int:
               f"{len(cases)} fixtures.")
         return 1
     print(f"OK  grader passes all {len(cases)} fixtures on their own expectations "
-          f"and rejects a wrongly-routed answer in every one.")
+          "and rejects mutations of routing, deduplication, abstention, "
+          "confidence, merges and preserved competitors.")
     return 0
+
+
+def prepare_report(path: str, payload: dict) -> Path:
+    """Reserve a new writable report before spending any model calls."""
+    dest = Path(path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with dest.open("x") as stream:
+        stream.write(json.dumps(payload, indent=2) + "\n")
+    return dest
 
 
 # --------------------------------------------------------------------------
@@ -468,6 +523,13 @@ def main() -> int:
     specs = ["repo", "plugin"] if args.spec == "both" else [args.spec]
     exit_code = 0
     full_report = {"model": args.model, "runs": []}
+    report_path = None
+    if args.json:
+        try:
+            report_path = prepare_report(args.json, full_report)
+        except OSError as exc:
+            parser.error(f"cannot create new report {args.json!r}: {exc}. "
+                         "Choose a writable path that does not already exist.")
 
     for spec_name in specs:
         spec_file = SPEC_SOURCES[spec_name]
@@ -492,13 +554,14 @@ def main() -> int:
         label = f"{spec_name} ({spec_file.relative_to(ROOT)})"
         report(rows, label, args.model)
         full_report["runs"].append({"spec": spec_name, "cases": rows})
+        if report_path:
+            report_path.write_text(json.dumps(full_report, indent=2) + "\n")
 
         if any(r["error"] or not all(c["ok"] for c in r["assertions"]) for r in rows):
             exit_code = 1
 
-    if args.json:
-        Path(args.json).write_text(json.dumps(full_report, indent=2) + "\n")
-        print(f"\nreport written to {args.json}")
+    if report_path:
+        print(f"\nreport written to {report_path}")
 
     return exit_code
 

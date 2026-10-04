@@ -7,9 +7,12 @@ basis is provisional").
 
 **Measurement confidence: varies by signal, and moves independently of the
 routing basis.** Sleep/wake duration is `high`. Sleep staging is `low`. HRV is
-`moderate` as a trend against the user's own baseline and `unusable` as an
-absolute value or as a cross-device comparison. Temperature deviation and
-all-day stress are `unvalidated` — no citation at all.
+`moderate` as a trend against the user's own baseline where applicable validation
+supports that use, and `unusable` for an absolute clinical claim or a cross-device
+comparison. Without applicable HRV validation, confidence is `unvalidated`;
+the reference device's trend evidence cannot be transferred to an unstudied
+device. Reporting separate sourced readings does not claim comparability.
+Temperature deviation and all-day stress are `unvalidated` — no citation at all.
 
 Both dimensions, and why they move separately, are defined in
 [`routed-observation.md`](routed-observation.md).
